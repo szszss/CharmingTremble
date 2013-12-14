@@ -1,0 +1,3 @@
+#ifdef OS_WINDOWS //其实用WIN32也行...
+//#pragma comment( lib, "opengl32.lib")
+#endif

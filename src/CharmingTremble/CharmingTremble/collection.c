@@ -128,7 +128,7 @@ void* LinkedListPop(LinkedList* linkedList,int* result)
 	}
 }
 
-unsigned long LinkedListDestory(LinkedList* linkedList,int callbackFunction(void* value))
+unsigned long LinkedListDestory(LinkedList* linkedList,int (*callbackFunction)(void* ))
 {
 	_LinkedListNode *deleted = NULL;
 	_LinkedListNode *node = linkedList->headNode->next;

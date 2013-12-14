@@ -15,6 +15,8 @@
 #include <GL/glu.h>
 #endif
 
+#include "util.h"
+
 SDL_Window* window = NULL;
 SDL_GLContext* glContext = NULL;
 static GLdouble aspect;
@@ -33,11 +35,13 @@ int RE_InitWindow(int width,int height)
 	window = SDL_CreateWindow(WINDOW_TITLE,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,width,height,SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 	if(window==NULL)
 		GameCrash("Initialized window failed.");
+	LoggerInfo("Window initialized");
 	glContext = SDL_GL_CreateContext(window);
 	if(glContext==NULL)
 	{
 		GameCrash("Initialized opengl(2.1) failed.");
 	}
+	LoggerInfo("OpenGL(2.1) initialized");
 	SDL_GL_SetSwapInterval(1);
 	RE_Reshape(width,height);
 	return 0;

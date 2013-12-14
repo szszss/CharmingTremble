@@ -22,4 +22,4 @@ void* LinkedListGet(LinkedList* linkedList,unsigned long index,int* result);
 void* LinkedListRemove(LinkedList* linkedList,void* value,int* result);
 void* LinkedListRemoveByIndex(LinkedList* linkedList,unsigned long index,int* result);
 void* LinkedListPop(LinkedList* linkedList,int* result);
-unsigned long LinkedListDestory(LinkedList* linkedList,int callbackFunction(void* value));
+unsigned long LinkedListDestory(LinkedList* linkedList,int (*callbackFunction)(void* ));

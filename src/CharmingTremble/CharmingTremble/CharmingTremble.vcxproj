@@ -45,6 +45,7 @@
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_ttf-2.0.12\include;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_image-2.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>OS_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -70,6 +71,7 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_ttf-2.0.12\include;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_image-2.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>OS_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -89,7 +91,9 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="collection.c" />
+    <ClCompile Include="entity.c" />
     <ClCompile Include="game.c" />
+    <ClCompile Include="gui.c" />
     <ClCompile Include="memory.c" />
     <ClCompile Include="renderengine.c" />
     <ClCompile Include="util.c" />
@@ -97,7 +101,9 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="collection.h" />
+    <ClInclude Include="entity.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="gui.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="oswork.h" />
     <ClInclude Include="renderengine.h" />

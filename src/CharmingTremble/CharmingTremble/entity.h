@@ -1,27 +1,34 @@
-typedef struct  
+#pragma once
+#include "game.h"
+#include "world.h"
+
+struct implEntityPrototype 
+{
+	int (*update)(void*,World*);
+	void (*render)(void*,World*);
+	void (*destroy)(void*,World*,int);
+};
+
+struct implEntity 
 {
 	EntityPrototype* prototype;
 	int posX;
 	int posY;
-} Entity;
+};
 
-typedef struct  
+struct implEntityBlock 
 {
-	struct Entity;
+	Entity base;
 	int width;
-} EntityBlock;
+};
 
-typedef struct  
+struct implEntityPlayer
 {
-	struct Entity;
+	Entity base;
 	int life;
-} EntityPlayer;
-
-typedef struct  
-{
-	void (*update)(void*);
-	void (*render)(void*);
-	void (*destroy)(void*);
-} EntityPrototype;
+};
 
 int CallbackDestroyEntity(void* entity);
+void EntityDestroy(void* entity,World* world,int cause);
+int EntityPlayerUpdate(void* entity,World* world);
+void EntityPlayerRender(void* entity,World* world);

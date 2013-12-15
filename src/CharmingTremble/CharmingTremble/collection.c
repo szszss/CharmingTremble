@@ -7,6 +7,7 @@ LinkedList* LinkedListCreate()
 	LinkedList *linkedList = (LinkedList*)malloc_s(sizeof(LinkedList));
 	_LinkedListNode *head = (_LinkedListNode*)malloc_s(sizeof(_LinkedListNode));
 	LinkedListIterator *iterator = (LinkedListIterator *)malloc_s(sizeof(LinkedListIterator));
+	iterator->host=linkedList;
 	head->value=(void*)iterator;
 	linkedList->headNode=head;
 	linkedList->lastNode=head;
@@ -77,6 +78,7 @@ void* LinkedListRemoveNode(LinkedList *linkedList,_LinkedListNode *node)
 		node->next->last=node->last;
 	}
 	free_s(node);
+	linkedList->length--;
 	return v;
 }
 
@@ -152,4 +154,29 @@ unsigned long LinkedListDestory(LinkedList* linkedList,int (*callbackFunction)(v
 	free_s(linkedList->headNode);
 	free_s(linkedList);
 	return 0;
+}
+
+LinkedListIterator* LinkedListGetIterator(LinkedList* linkedList)
+{
+	LinkedListIterator* iterator = (LinkedListIterator*)(linkedList->headNode->value);
+	iterator->currentNode=linkedList->headNode;
+	iterator->nextNode=iterator->currentNode->next;
+	return iterator;
+}
+
+void* LinkedListIteratorGetNext(LinkedListIterator* iterator)
+{
+	iterator->currentNode=iterator->nextNode;
+	iterator->nextNode=iterator->currentNode->next;
+	return iterator->currentNode->value;
+}
+
+int LinkedListIteratorHasNext(LinkedListIterator* iterator)
+{
+	return iterator->nextNode!=NULL;
+}
+
+void* LinkedListIteratorDeleteCurrent(LinkedListIterator* iterator)
+{
+	return LinkedListRemoveNode(iterator->host,iterator->currentNode);
 }

@@ -1,16 +1,12 @@
+#pragma once
+#include "game.h"
 #include <stdio.h>
 
-#ifndef BOOL
-#define BOOL int
-#define TRUE 1
-#define FALSE 0
-#endif
-
-typedef struct
+struct implMTRandomGen
 {
 	long int MT[624];
 	long int index ;
-} MTRandomGen;
+};
 
 MTRandomGen* MTCreate(long seed);
 long MTNext(MTRandomGen *randomGen);
@@ -29,14 +25,14 @@ void MTDestroy(MTRandomGen *randomGen);
 #define LOGGER_FORMAT_JAVA "[%s] %s\n"
 enum LoggerMode {LOGGER_OVERRIDE,LOGGER_APPEND};
 
-typedef struct  
+struct implLogger
 {
 	FILE* loggerFile;
 	BOOL fileAvailable;
 	enum LoggerMode mode;
 	int level;
 	char* format;
-} Logger;
+};
 
 // Logger采用单例模式,程序中只能存在一个Logger
 void LoggerCreate(BOOL logInFile,char* fileName,enum LoggerMode mode,int level,char* format);
@@ -55,10 +51,10 @@ void LoggerClose();
 /*StringBuilder是一个能将多个字符串拼接为一个的工具.*/
 #define STRING_BUILDER_MAX_BUFFER 24
 
-typedef struct {
+typedef struct implStringBuilder{
 	char** bufferedString;
 	int bufferPointer;
-} StringBuilder;
+};
 
 /*创建一个新的StringBuilder.*/
 StringBuilder* SBCreate();

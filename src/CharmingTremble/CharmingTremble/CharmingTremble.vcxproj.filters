@@ -39,6 +39,9 @@
     <ClCompile Include="gui.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="resourcemanager.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
@@ -48,9 +51,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="renderengine.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="oswork.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="world.h">
@@ -66,6 +66,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="entity.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="resourcemanager.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

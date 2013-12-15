@@ -1,4 +1,6 @@
-typedef struct
+#include "game.h"
+
+struct implGuiButton
 {
 	int posX;
 	int posY;
@@ -6,9 +8,6 @@ typedef struct
 	int height;
 	char *text;
 	int flags;
-} GuiButton;
-
-enum ScreenState {SS_MAINMENU,
-				  SS_GAME};
+};
 
 void GuiUpdate();

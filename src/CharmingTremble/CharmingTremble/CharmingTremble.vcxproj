@@ -42,15 +42,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_ttf-2.0.12\include;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_image-2.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>OS_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_ttf-2.0.12\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_image-2.0.0\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\SDL2\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;libpng17.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -68,7 +68,7 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_ttf-2.0.12\include;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_image-2.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>OS_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CompileAs>CompileAsC</CompileAs>
@@ -77,8 +77,8 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_ttf-2.0.12\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\SDL2_image-2.0.0\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -96,6 +96,7 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
     <ClCompile Include="gui.c" />
     <ClCompile Include="memory.c" />
     <ClCompile Include="renderengine.c" />
+    <ClCompile Include="resourcemanager.c" />
     <ClCompile Include="util.c" />
     <ClCompile Include="world.c" />
   </ItemGroup>
@@ -105,8 +106,8 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
     <ClInclude Include="game.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="memory.h" />
-    <ClInclude Include="oswork.h" />
     <ClInclude Include="renderengine.h" />
+    <ClInclude Include="resourcemanager.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="world.h" />
   </ItemGroup>

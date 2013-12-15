@@ -1,5 +1,6 @@
 #include "util.h"
 #include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 //梅森旋转算法随机数发生器

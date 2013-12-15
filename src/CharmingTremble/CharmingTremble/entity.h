@@ -12,8 +12,8 @@ struct implEntityPrototype
 struct implEntity 
 {
 	EntityPrototype* prototype;
-	int posX;
-	int posY;
+	float posX;
+	float posY;
 };
 
 struct implEntityBlock 
@@ -28,7 +28,10 @@ struct implEntityPlayer
 	int life;
 };
 
-int CallbackDestroyEntity(void* entity);
+int InitEntities();
+
 void EntityDestroy(void* entity,World* world,int cause);
 int EntityPlayerUpdate(void* entity,World* world);
 void EntityPlayerRender(void* entity,World* world);
+
+int CallbackDestroyEntity(void* entity);

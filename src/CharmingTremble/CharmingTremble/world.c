@@ -1,21 +1,21 @@
 #include "world.h"
 #include "memory.h"
 
+extern EntityPrototype entityPrototypePlayer;
+
 World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDifficulty difficulty )
 {
 	World *world = (World*)malloc_s(sizeof(World));
 	world->playerName=playerName;
 	world->player = (EntityPlayer*)malloc_s(sizeof(EntityPlayer));
-	world->player->base.prototype->update = &EntityPlayerUpdate;
-	world->player->base.prototype->render = &EntityPlayerRender;
-	world->player->base.prototype->destroy = &EntityDestroy;
+	world->player->base.prototype = &entityPrototypePlayer;
 	world->score=0;
 	world->seed=seed;
 	world->type=type;
 	world->difficulty=difficulty;
 	world->powerupList=LinkedListCreate();
 	world->blockList=LinkedListCreate();
-	world->operateStack=LinkedListCreate();
+	world->operateQueue=LinkedListCreate();
 	return world;
 }
 
@@ -35,6 +35,7 @@ void WorldDestory(World* world)
 	LinkedListDestory(world->blockList,CallbackDestroyEntity);
 	LinkedListDestory(world->powerupList,CallbackDestroyEntity);
 	CallbackDestroyEntity((void*)world->player);
+	//TODO:销毁操作队列
 }
 
 void UpdateEntityList(World* world,LinkedList *list)

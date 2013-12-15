@@ -8,4 +8,4 @@ void RE_DestroyWindow();
 void RE_Reshape(int width,int height);
 int RE_Render();
 /*lx,ly,lz为左上顶点,rx,ry,rz为右下顶点*/
-void RE_drawCube(float lx,float ly,float lz,float rx,float ry,float rz);
+void RE_DrawCube(float lx,float ly,float lz,float rx,float ry,float rz);

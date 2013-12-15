@@ -3,6 +3,7 @@
 #include "renderengine.h"
 #include "SDL.h"
 #include "util.h"
+#include "entity.h"
 #include "world.h"
 
 void GameClose();
@@ -23,6 +24,7 @@ int main(int argc, char** argv)
 		GameCrash("Initialized SDL failed");
 	LoggerInfo("SDL initialized");
 	RE_InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT);
+	InitEntities();
 	GameMainLoop();
 	GameClose();
 	return 0;
@@ -67,6 +69,9 @@ int HandleEvent(SDL_Event sdlEvent)
 	{
 	case SDL_KEYDOWN:
 		
+		break;
+	case SDL_KEYUP:
+
 		break;
 	case SDL_TEXTINPUT:
 		

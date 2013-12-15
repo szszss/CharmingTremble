@@ -1,5 +1,7 @@
+#pragma once
 #include "renderengine.h"
 #include "game.h"
+#include "png.h"
 
 #ifdef OS_WINDOWS //其实用WIN32也行...
 #pragma comment( lib, "opengl32.lib")
@@ -15,12 +17,14 @@
 #include <GL/glu.h>
 #endif
 
+#include "world.h"
 #include "util.h"
 
 SDL_Window* window = NULL;
 SDL_GLContext* glContext = NULL;
 static GLdouble aspect;
 
+extern World* theWorld;
 extern unsigned long long tickTime;
 
 int RE_InitWindow(int width,int height)
@@ -50,7 +54,9 @@ int RE_InitWindow(int width,int height)
 void RE_Reshape(int width,int height)
 {
 	glViewport(0,0,width,height);
-	aspect = (double)width/(double)height;
+	//aspect = (double)width/(double)height;
+	aspect = (double)height/(double)width;
+	//aspect=1;
 }
 
 void RE_DestroyWindow()
@@ -67,21 +73,32 @@ int RE_Render()
 	glClearColor( RE_CLEAR_COLOR ); //静怡的天蓝色
 	glMatrixMode(GL_PROJECTION); //重设定投影矩阵
 	glLoadIdentity();
-	//glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 100.0);
+	//glOrtho(-100.0, 100.0, -100.0, 100.0, 1.0, 100.0);
 	//gluOrtho2D(-1.0,1.0,-1.0,1.0);
-	gluPerspective( 70.0, aspect, 1.0, 1024.0 ); //将投影矩阵设为透视投影
+	//gluPerspective( 70.0, aspect, 1.0, 1024.0 ); //将投影矩阵设为透视投影
+	glFrustum(-0.35,0.65,-aspect/2,aspect/2,1,1024);
 	glMatrixMode( GL_MODELVIEW ); //设定模型视角矩阵
 	glLoadIdentity();
 	glEnable(GL_DEPTH_TEST); //不开深度测试的话毁三观啊
-	glTranslatef(0.0f, 0.0f, -25);
+	glTranslatef(0.0f, 0.0f, -42);
 	//glRotatef(tickTime,1,1,1);
 	//RE_drawCube(-1,1,-1,1,-1,1);
+	if(theWorld!=NULL)
+	{
+		WorldRender(theWorld);
+	}
 	SDL_GL_SwapWindow(window);
 	return 0;
 }
 
-void RE_drawCube( float lx,float ly,float lz,float rx,float ry,float rz )
+void RE_DrawCube( float lx,float ly,float lz,float rx,float ry,float rz )
 {
+	if(ly<ry)
+	{
+		float temp = ly;
+		ly=ry;
+		ry=temp;
+	}
 	glBegin(GL_QUADS);
 		//绘制正面
 		//glColor4f(1,0,0,1);

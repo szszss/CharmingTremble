@@ -329,14 +329,18 @@ BOOL HashTreeSet(HashTree* ht,char* key,void* value)
 {
 	return _HashTreeSet(ht,key,value,TRUE);
 }
-_HashTreeNode* _HashTreeGet(HashTree* ht,char* key)
+_HashTreeNode* _HashTreeGet(HashTree* ht,char* key,BOOL* result)
 {
 	_HashTreeNode* node = ht->rootNode;
 	Hash hash = HashCode(key);
 	while(TRUE)
 	{
 		if(node==NULL)
+		{
+			if(result!=NULL)
+				*result = FALSE;
 			return NULL;
+		}			
 		if(hash < node->hash)
 		{
 			node=node->leftNode;
@@ -348,17 +352,22 @@ _HashTreeNode* _HashTreeGet(HashTree* ht,char* key)
 		else
 		{
 			if(node->nextNode==NULL || strcmp(key,node->key)==0)
+			{
+				if(result!=NULL)
+					*result = TRUE;
 				return node;
+			}
+				
 			node=node->nextNode;
 		}
 	}
 }
-void* HashTreeRemove(HashTree* ht,char* key,int* result)
+void* HashTreeRemove(HashTree* ht,char* key,BOOL* result)
 {
 	_HashTreeNode* node = NULL;
 	_HashTreeNode* parent = NULL;
 	void* v = NULL;
-	node = _HashTreeGet(ht,key);
+	node = _HashTreeGet(ht,key,NULL);
 	if(node==NULL)
 	{
 		if(result!=NULL)
@@ -438,39 +447,40 @@ void* HashTreeRemove(HashTree* ht,char* key,int* result)
 		*result = FALSE;
 	return NULL;
 }
-void* HashTreeGet(HashTree* ht,char* key)
+void* HashTreeGet(HashTree* ht,char* key,BOOL* result)
 {
 	_HashTreeNode* node = NULL;
-	node = _HashTreeGet(ht,key);
+	node = _HashTreeGet(ht,key,result);
 	if(node==NULL)
 		return NULL;
 	return node->value;
 }
 //int HashTreeLength(HashTree* ht,char* key);
-BOOL _HashTreeNodeDestroy(_HashTreeNode* node,void (*callbackFunction)(void* ))
+BOOL _HashTreeNodeDestroy(_HashTreeNode* node,void (*callbackFunction)(void* ),BOOL isRoot)
 {
 	char i = 0;
 	if(node->nextNode!=NULL)
-		i += _HashTreeNodeDestroy(node->nextNode,callbackFunction);
+		i += _HashTreeNodeDestroy(node->nextNode,callbackFunction,FALSE);
 	else
 		i++;
 	if(node->leftNode!=NULL)
-		i += _HashTreeNodeDestroy(node->leftNode,callbackFunction);
+		i += _HashTreeNodeDestroy(node->leftNode,callbackFunction,FALSE);
 	else
 		i++;
 	if(node->rightNode!=NULL)
-		i += _HashTreeNodeDestroy(node->rightNode,callbackFunction);
+		i += _HashTreeNodeDestroy(node->rightNode,callbackFunction,FALSE);
 	else
 		i++;
 	if(i!=3)
 		return FALSE;
-	callbackFunction(node->value);
+	if(isRoot==FALSE)
+		callbackFunction(node->value);
 	free(node);
 	return TRUE;
 }
 BOOL HashTreeDestroy(HashTree* ht,void (*callbackFunction)(void* ))
 {
-	BOOL result = _HashTreeNodeDestroy(ht->rootNode,callbackFunction);
+	BOOL result = _HashTreeNodeDestroy(ht->rootNode,callbackFunction,TRUE);
 	if(result == TRUE)
 		free(ht);
 	return result;

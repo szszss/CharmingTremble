@@ -2,6 +2,7 @@
 #include "memory.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 //梅森旋转算法随机数发生器
 
@@ -70,6 +71,7 @@ void LoggerCreate(BOOL logInFile,char* fileName,enum LoggerMode mode,int level,c
 	logger.level=level;
 	logger.mode=mode;
 	logger.format=format;
+	logger.baseLength=strlen(format)+2;
 	if(logger.fileAvailable)
 	{
 		switch(logger.mode)
@@ -93,49 +95,68 @@ void LoggerCreate(BOOL logInFile,char* fileName,enum LoggerMode mode,int level,c
 		LoggerInfo("Logger initialized. Hello Yooooorld!");
 	}
 }
-int LoggerOutput(char* level,char* text)
+int LoggerOutput(char* level,char* text,va_list args)
 {
-	printf(logger.format,level,text);
+	printf(logger.format,level);
+	vprintf(text,args);
+	printf("\n");
 	if(logger.fileAvailable)
 	{
-		fprintf(logger.loggerFile,logger.format,level,text);
+		fprintf(logger.loggerFile,logger.format,level);
+		vfprintf(logger.loggerFile,text,args);
+		fprintf(logger.loggerFile,"\n");
 		return 2;
 	}
 	return 1;
 }
 
-int LoggerDebug(char* text)
+int LoggerDebug(char* text,...)
 {
+	va_list args;
+	va_start(args, text);
 	if(logger.level&LOGGER_LEVEL_DEBUG)
-		return LoggerOutput("Debug",text);
+		return LoggerOutput("Debug",text,args);
+	va_end(args);
 	return 0;
 }
 //int LoggerDebugln(char* text);
-int LoggerInfo(char* text)
+int LoggerInfo(char* text,...)
 {
+	va_list args;
+	va_start(args, text);
 	if(logger.level&LOGGER_LEVEL_INFO)
-		return LoggerOutput("Info",text);
+		return LoggerOutput("Info",text,args);
+	va_end(args);
 	return 0;
 }
 //int LoggerInfoln(char* text);
-int LoggerWarn(char* text)
+int LoggerWarn(char* text,...)
 {
+	va_list args;
+	va_start(args, text);
 	if(logger.level&LOGGER_LEVEL_WARN)
-		return LoggerOutput("Warn",text);
+		return LoggerOutput("Warn",text,args);
+	va_end(args);
 	return 0;
 }
 //int LoggerWarnln(char* text);
-int LoggerError(char* text)
+int LoggerError(char* text,...)
 {
+	va_list args;
+	va_start(args, text);
 	if(logger.level&LOGGER_LEVEL_ERROR)
-		return LoggerOutput("Error",text);
+		return LoggerOutput("Error",text,args);
+	va_end(args);
 	return 0;
 }
 //int LoggerErrorln(char* text);
-int LoggerFatal(char* text)
+int LoggerFatal(char* text,...)
 {
+	va_list args;
+	va_start(args, text);
 	if(logger.level&LOGGER_LEVEL_FATAL)
-		return LoggerOutput("Fatal",text);
+		return LoggerOutput("Fatal",text,args);
+	va_end(args);
 	return 0;
 }
 //int LoggerFatalln(char* text);

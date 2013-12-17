@@ -16,17 +16,22 @@
 	#endif
 #endif
 
+typedef unsigned char ImageData;
+
 typedef struct implWorld                World;              //游戏世界
+typedef struct implEntityPrototype      EntityPrototype;    //实体原型
+typedef struct implEntity               Entity;             //实体
+typedef struct implEntityBlock          EntityBlock;        //砖块实体
+typedef struct implEntityPlayer         EntityPlayer;       //玩家实体
+
+typedef struct implTexture              Texture;            //纹理
+typedef struct implGuiButton            GuiButton;          //按钮
+
 typedef struct implLinkedList           LinkedList;         //链表
 typedef struct implLinkedListIterator   LinkedListIterator; //链表遍历器
 typedef struct implLinkedListNode       _LinkedListNode;    //链表节点
 typedef struct implHashTree             HashTree;           //哈希二叉树
 typedef struct implHashTreeNode         _HashTreeNode;      //哈希二叉树节点
-typedef struct implEntityPrototype      EntityPrototype;    //实体原型
-typedef struct implEntity               Entity;             //实体
-typedef struct implEntityBlock          EntityBlock;        //砖块实体
-typedef struct implEntityPlayer         EntityPlayer;       //玩家实体
-typedef struct implGuiButton            GuiButton;          //按钮
 typedef struct implMTRandomGen          MTRandomGen;        //梅森旋转算法随机数发生器
 typedef struct implLogger               Logger;             //日志记录器
 typedef struct implStringBuilder        StringBuilder;      //字符串构造器

@@ -1,5 +1,5 @@
-#pragma once
 #include "renderengine.h"
+#include "resourcemanager.h"
 #include "game.h"
 #include "png.h"
 
@@ -67,8 +67,18 @@ void RE_DestroyWindow()
 		SDL_DestroyWindow(window);
 }
 
+int RE_BindTexture(Texture* texture)
+{
+	if(texture==NULL)
+		glBindTexture(GL_TEXTURE_2D,0);
+	else
+		glBindTexture(GL_TEXTURE_2D,texture->id);
+}
+
 int RE_Render()
 {
+	Texture* texture;
+	//-------------------绘制3D-------------------
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); //清理缓存
 	glClearColor( RE_CLEAR_COLOR ); //静怡的天蓝色
 	glMatrixMode(GL_PROJECTION); //重设定投影矩阵
@@ -79,6 +89,7 @@ int RE_Render()
 	glFrustum(-0.35,0.65,-aspect/2,aspect/2,1,1024);
 	glMatrixMode( GL_MODELVIEW ); //设定模型视角矩阵
 	glLoadIdentity();
+	glPushMatrix();
 	glEnable(GL_DEPTH_TEST); //不开深度测试的话毁三观啊
 	glTranslatef(0.0f, 0.0f, -42);
 	//glRotatef(tickTime,1,1,1);
@@ -87,6 +98,32 @@ int RE_Render()
 	{
 		WorldRender(theWorld);
 	}
+	glPopMatrix();
+	glDisable(GL_DEPTH_TEST);
+	glFlush();
+	//-------------------绘制2D-------------------
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-1.0, 1.0, -1.0, 1.0, 0.5, 10.0);
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, -1);
+	texture=RM_GetTexture("image/bgGame.png");
+	glEnable(GL_TEXTURE_2D);
+	RE_BindTexture(texture);
+	glRotatef(tickTime,1,1,1);
+	glBegin(GL_QUADS);
+		//glColor4f(0.5,0.5,0.5,1);
+		glTexCoord2f(1,1);glVertex3f(0.5,0.5,0);
+		glTexCoord2f(1,0);glVertex3f(0.5,-0.5,0);
+		glTexCoord2f(0,0);glVertex3f(-0.5,-0.5,0);
+		glTexCoord2f(0,1);glVertex3f(-0.5,0.5,0);
+	glEnd();
+	RE_BindTexture(NULL);
+	glPopMatrix();
+	glFlush();
+	RE_CheckGLError("Before swap screen buffer");
 	SDL_GL_SwapWindow(window);
 	return 0;
 }
@@ -143,5 +180,61 @@ void RE_DrawCube( float lx,float ly,float lz,float rx,float ry,float rz )
 		glVertex3f(rx,ry,rz);
 		glVertex3f(rx,ry,lz);
 	glEnd();
+}
+
+unsigned int RE_ProcessRawTexture( ImageData* rawData,int format,unsigned long width,unsigned long height )
+{
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 0, format, GL_UNSIGNED_BYTE, rawData);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_BLEND);;
+	return texture;
+}
+
+void RE_UnloadTexture( unsigned int texture )
+{
+	glDeleteTextures(1,&texture);
+}
+
+int RE_CheckGLError(char* stage)
+{
+	int error = 0;
+	GLenum errorType;
+	char *reason;
+	while((errorType = glGetError())!=GL_NO_ERROR)
+	{
+		error=1;
+		switch(errorType)
+		{
+		case GL_INVALID_ENUM:
+			reason = "Invalid enum";
+			break;
+		case GL_INVALID_VALUE :
+			reason = "Invalid value";
+			break;
+		case GL_INVALID_OPERATION :
+			reason = "Invalid operation";
+			break;
+		case GL_STACK_OVERFLOW :
+			reason = "Stack overflow";
+			break;
+		case GL_STACK_UNDERFLOW :
+			reason = "Underflow";
+			break;
+		case GL_OUT_OF_MEMORY :
+			reason = "Out of memory";
+			break;
+		default:
+			reason = "Unknown";
+			break;
+		}
+		LoggerWarn("An OpenGL error happened in [%s] : %s",stage,reason);
+	}
+	return error;
 }
 

@@ -21,8 +21,8 @@ void MTDestroy(MTRandomGen *randomGen);
 #define LOGGER_LEVEL_ALL 31
 #define LOGGER_LEVEL_ALL_EXCEPT_DEBUG 30
 #define LOGGER_LEVEL_NONE 0
-#define LOGGER_FORMAT_C "%s: %s\n"
-#define LOGGER_FORMAT_JAVA "[%s] %s\n"
+#define LOGGER_FORMAT_C "%s: "
+#define LOGGER_FORMAT_JAVA "[%s] "
 enum LoggerMode {LOGGER_OVERRIDE,LOGGER_APPEND};
 
 struct implLogger
@@ -32,19 +32,20 @@ struct implLogger
 	enum LoggerMode mode;
 	int level;
 	char* format;
+	int baseLength;
 };
 
 // Logger采用单例模式,程序中只能存在一个Logger
 void LoggerCreate(BOOL logInFile,char* fileName,enum LoggerMode mode,int level,char* format);
-int LoggerDebug(char* text);
+int LoggerDebug(char* text,...);
 //int LoggerDebugln(char* text);
-int LoggerInfo(char* text);
+int LoggerInfo(char* text,...);
 //int LoggerInfoln(char* text);
-int LoggerWarn(char* text);
+int LoggerWarn(char* text,...);
 //int LoggerWarnln(char* text);
-int LoggerError(char* text);
+int LoggerError(char* text,...);
 //int LoggerErrorln(char* text);
-int LoggerFatal(char* text);
+int LoggerFatal(char* text,...);
 //int LoggerFatalln(char* text);
 void LoggerClose();
 

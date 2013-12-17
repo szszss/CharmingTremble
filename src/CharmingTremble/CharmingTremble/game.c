@@ -1,6 +1,7 @@
 #include "game.h"
 #include <stdlib.h>
 #include "renderengine.h"
+#include "resourcemanager.h"
 #include "SDL.h"
 #include "util.h"
 #include "entity.h"
@@ -23,6 +24,7 @@ int main(int argc, char** argv)
 	if(SDL_Init(SDL_INIT_EVERYTHING))
 		GameCrash("Initialized SDL failed");
 	LoggerInfo("SDL initialized");
+	RM_InitResourceManager();
 	RE_InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT);
 	InitEntities();
 	GameMainLoop();
@@ -96,6 +98,7 @@ void GameClose()
 {
 	LoggerInfo("Closing game");
 	RE_DestroyWindow();
+	RM_Close();
 	SDL_Quit();
 	LoggerInfo("SDL closed");
 	LoggerClose();

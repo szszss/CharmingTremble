@@ -26,7 +26,7 @@ void RM_DestroyTexture(void* p)
 
 int RM_Close()
 {
-	if(HashTreeDestroy(textureHT,RM_DestroyTexture))
+	if(HashTreeDestroy(textureHT,RM_DestroyTexture)==FALSE)
 	{
 		LoggerWarn("Something is wrong when destroying texture HT. This is just a warnning since the game is closing");
 	}

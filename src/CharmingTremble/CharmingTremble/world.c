@@ -1,7 +1,9 @@
 #include "world.h"
 #include "memory.h"
+#include "resourcemanager.h"
 
 extern EntityPrototype entityPrototypePlayer;
+extern EntityPrototype entityPrototypeBlock;
 
 World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDifficulty difficulty )
 {
@@ -13,6 +15,7 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 	world->seed=seed;
 	world->type=type;
 	world->difficulty=difficulty;
+	world->upSpeed = 0.01f;
 	world->powerupList=LinkedListCreate();
 	world->blockList=LinkedListCreate();
 	world->operateQueue=LinkedListCreate();
@@ -21,7 +24,43 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 
 void WorldStart(World* world)
 {
-
+	Texture *texture = NULL;
+	EntityBlock* block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
+	texture=RM_GetTexture("image/brick.png");
+	block->width=5;
+	block->base.posX=-5;
+	block->base.posY=-10;
+	block->texture=texture;
+	block->base.prototype=&entityPrototypeBlock;
+	LinkedListAdd(world->blockList,block);
+	block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
+	block->width=7;
+	block->base.posX=4;
+	block->base.posY=2;
+	block->texture=texture;
+	block->base.prototype=&entityPrototypeBlock;
+	LinkedListAdd(world->blockList,block);
+	block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
+	block->width=1;
+	block->base.posX=9;
+	block->base.posY=8;
+	block->texture=texture;
+	block->base.prototype=&entityPrototypeBlock;
+	LinkedListAdd(world->blockList,block);
+	block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
+	block->width=20;
+	block->base.posX=0.5;
+	block->base.posY=-3;
+	block->texture=texture;
+	block->base.prototype=&entityPrototypeBlock;
+	LinkedListAdd(world->blockList,block);
+	block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
+	block->width=7;
+	block->base.posX=-4;
+	block->base.posY=5;
+	block->texture=texture;
+	block->base.prototype=&entityPrototypeBlock;
+	LinkedListAdd(world->blockList,block);
 }
 
 void WorldEnd(World* world)

@@ -20,6 +20,7 @@ struct implEntityBlock
 {
 	Entity base;
 	int width;
+	Texture *texture;
 };
 
 struct implEntityPlayer
@@ -33,5 +34,7 @@ int InitEntities();
 void EntityDestroy(void* entity,World* world,int cause);
 int EntityPlayerUpdate(void* entity,World* world);
 void EntityPlayerRender(void* entity,World* world);
+int EntityBlockUpdate(void* entity,World* world);
+void EntityBlockRender(void* entity,World* world);
 
 int CallbackDestroyEntity(void* entity);

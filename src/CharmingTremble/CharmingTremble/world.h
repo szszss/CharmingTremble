@@ -13,6 +13,7 @@ struct implWorld
 	LinkedList *blockList;
 	LinkedList *powerupList;
 	LinkedList *operateQueue;
+	float upSpeed;
 	enum WorldType type;
 	enum WorldDifficulty difficulty;
 };

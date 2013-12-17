@@ -28,6 +28,7 @@ void RE_DestroyWindow();
 void RE_Reshape(int width,int height);
 int RE_Render();
 /*lx,ly,lz为左上顶点,rx,ry,rz为右下顶点*/
+void RE_RenderCubeQuick(int count);
 void RE_RenderCube(float lx,float ly,float lz,float rx,float ry,float rz);
 void RE_DrawRectWithTexture(float x,float y,float width,float height,float u,float v,float uw,float vh);
 int RE_BindTexture(Texture* texture);

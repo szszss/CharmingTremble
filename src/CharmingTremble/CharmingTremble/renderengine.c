@@ -34,6 +34,7 @@ int RE_InitWindow(int width,int height)
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE,8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
 	window = SDL_CreateWindow(WINDOW_TITLE,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,width,height,SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
@@ -81,11 +82,9 @@ int RE_Render()
 	//-------------------绘制3D-------------------
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); //清理缓存
 	glClearColor( RE_CLEAR_COLOR ); //静怡的天蓝色
+	RE_CheckGLError(RE_STAGE_BEFORE_DRAW_3D);
 	glMatrixMode(GL_PROJECTION); //重设定投影矩阵
 	glLoadIdentity();
-	//glOrtho(-100.0, 100.0, -100.0, 100.0, 1.0, 100.0);
-	//gluOrtho2D(-1.0,1.0,-1.0,1.0);
-	//gluPerspective( 70.0, aspect, 1.0, 1024.0 ); //将投影矩阵设为透视投影
 	glFrustum(-0.35,0.65,-aspect/2,aspect/2,1,1024);
 	glMatrixMode( GL_MODELVIEW ); //设定模型视角矩阵
 	glLoadIdentity();
@@ -98,10 +97,13 @@ int RE_Render()
 	{
 		WorldRender(theWorld);
 	}
+	RE_CheckGLError(RE_STAGE_AFTER_DRAW_3D);
 	glPopMatrix();
 	glDisable(GL_DEPTH_TEST);
 	glFlush();
+	RE_CheckGLError(RE_STAGE_FLUSH_3D);
 	//-------------------绘制2D-------------------
+	RE_CheckGLError(RE_STAGE_BEFORE_DRAW_2D);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-1.0, 1.0, -1.0, 1.0, 0.5, 10.0);
@@ -109,26 +111,26 @@ int RE_Render()
 	glLoadIdentity();
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, -1);
-	texture=RM_GetTexture("image/bgGame.png");
 	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	texture=RM_GetTexture("image/bgGame.png");
 	RE_BindTexture(texture);
-	glRotatef(tickTime,1,1,1);
-	glBegin(GL_QUADS);
-		//glColor4f(0.5,0.5,0.5,1);
-		glTexCoord2f(1,1);glVertex3f(0.5,0.5,0);
-		glTexCoord2f(1,0);glVertex3f(0.5,-0.5,0);
-		glTexCoord2f(0,0);glVertex3f(-0.5,-0.5,0);
-		glTexCoord2f(0,1);glVertex3f(-0.5,0.5,0);
-	glEnd();
+	//glRotatef(tickTime,1,1,1);
+	RE_DrawRectWithTexture(0,0,1,1,0,0,800.0/1024.0,600.0/1024.0);
 	RE_BindTexture(NULL);
+	RE_CheckGLError(RE_STAGE_AFTER_DRAW_2D);
 	glPopMatrix();
 	glFlush();
-	RE_CheckGLError("Before swap screen buffer");
+	RE_CheckGLError(RE_STAGE_FLUSH_2D);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
 	SDL_GL_SwapWindow(window);
+	RE_CheckGLError(RE_STAGE_SWAP);
 	return 0;
 }
 
-void RE_DrawCube( float lx,float ly,float lz,float rx,float ry,float rz )
+void RE_RenderCube( float lx,float ly,float lz,float rx,float ry,float rz )
 {
 	if(ly<ry)
 	{
@@ -182,17 +184,21 @@ void RE_DrawCube( float lx,float ly,float lz,float rx,float ry,float rz )
 	glEnd();
 }
 
-unsigned int RE_ProcessRawTexture( ImageData* rawData,int format,unsigned long width,unsigned long height )
+unsigned int RE_ProcessRawTexture( ImageData* rawData,int color,int format,unsigned long width,unsigned long height )
 {
 	GLuint texture;
+	RE_CheckGLError(RE_STAGE_BEFORE_PROCESS_TEXTURE);
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 0, format, GL_UNSIGNED_BYTE, rawData);
+	//GL_RGBA
+	glTexImage2D(GL_TEXTURE_2D, 0, color, width, height, 0, format, GL_UNSIGNED_BYTE, rawData);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, rawData);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_BLEND);;
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_BLEND); //诡异的反色!
+	RE_CheckGLError(RE_STAGE_AFTER_PROCESS_TEXTURE);
 	return texture;
 }
 
@@ -236,5 +242,20 @@ int RE_CheckGLError(char* stage)
 		LoggerWarn("An OpenGL error happened in [%s] : %s",stage,reason);
 	}
 	return error;
+}
+
+void RE_DrawRectWithTexture( float x,float y,float width,float height,float u,float v,float uw,float vh )
+{
+	x=x*2.0f-1.0f;
+	y=1.0f-(y*2.0f);
+	v=1.0f-v;
+	width*=2.0f;
+	height*=2.0f;
+	glBegin(GL_QUADS);
+		glTexCoord2f(u+uw,v-vh);glVertex3f(x+width,y-height,0);
+		glTexCoord2f(u+uw,v);glVertex3f(x+width, y,0);
+		glTexCoord2f(u,v);glVertex3f(x,y,0);
+		glTexCoord2f(u,v-vh);glVertex3f(x,y-height,0);
+	glEnd();
 }
 

@@ -67,7 +67,7 @@ void* LinkedListGet(LinkedList* linkedList,unsigned long index,BOOL* result)
 void* LinkedListRemoveNode(LinkedList *linkedList,_LinkedListNode *node)
 {
 	void* v;
-	_LinkedListNode *temp;
+	//_LinkedListNode *temp;
 	v=node->value;
 	if(linkedList->lastNode==node)
 	{

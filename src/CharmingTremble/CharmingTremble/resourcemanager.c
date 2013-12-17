@@ -144,6 +144,7 @@ Texture* RM_LoadPNG( char* imageFile )
 	texture->width=width;
 	texture->height=height;
 	texture->id=RE_ProcessRawTexture(rawData,
+		colorType==PNG_COLOR_TYPE_RGB_ALPHA?GL_RGBA8:GL_RGB8,
 		colorType==PNG_COLOR_TYPE_RGB_ALPHA?GL_RGBA:GL_RGB,
 		width,height);
 	png_destroy_read_struct(&png, &info, &end_info);

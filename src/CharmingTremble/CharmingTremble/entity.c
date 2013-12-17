@@ -32,7 +32,7 @@ void EntityPlayerRender(void* entity,World* world)
 	//float z = player->posY;
 	glPushMatrix();
 	//glTranslatef(-1,1,-5);
-	RE_DrawCube(0,0,0,1,-1,1);
+	RE_RenderCube(0,0,0,1,-1,1);
 	glPopMatrix();
 }
 

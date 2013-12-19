@@ -1,7 +1,11 @@
 #include "renderengine.h"
 #include "resourcemanager.h"
 #include "game.h"
+#include "memory.h"
+#include "oswork.h"
 #include "png.h"
+#include "ft2build.h"
+#include FT_FREETYPE_H
 
 #ifdef OS_WINDOWS //其实用WIN32也行...
 #pragma comment( lib, "opengl32.lib")
@@ -21,21 +25,28 @@
 #include "util.h"
 
 int RE_InitQuicklyRender();
+int RE_InitFontRenderer(int width,int height);
 void RE_RenderCubeDoLeft(float lx,float ly,float lz,float rx,float ry,float rz);
 void RE_RenderCubeDoCentre(float lx,float ly,float lz,float rx,float ry,float rz);
 void RE_RenderCubeDoRight(float lx,float ly,float lz,float rx,float ry,float rz);
 void RE_DestroyQuicklyRender();
+void RE_DestroyFontRenderer();
 
 SDL_Window* window = NULL;
-SDL_GLContext* glContext = NULL;
+SDL_GLContext glContext = NULL;
+FT_Library library = NULL;
+FT_Face face = NULL;
 static GLdouble aspect;
 static GLuint quicklyRenderList[20]={0};
+static int windowWidth;
+static int windowHeight;
 
 extern World* theWorld;
 extern unsigned long long tickTime;
 
 int RE_InitWindow(int width,int height)
 {
+	int result;
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE,8);
@@ -60,11 +71,19 @@ int RE_InitWindow(int width,int height)
 	{
 		GameCrash("Initialized OpenGL quickly renderer failed.");
 	}
+	if(result=RE_InitFontRenderer(width,height))
+	{
+		LoggerFatal("Font renderer error:%d",result);
+		GameCrash("Initialized Font renderer failed.");
+	}
+	LoggerInfo("Font renderer initialized");
 	return 0;
 }
 
 void RE_Reshape(int width,int height)
 {
+	windowWidth=width;
+	windowHeight=height;
 	glViewport(0,0,width,height);
 	//aspect = (double)width/(double)height;
 	aspect = (double)height/(double)width;
@@ -82,24 +101,35 @@ void RE_DestroyWindow()
 		RE_DestroyQuicklyRender();
 		LoggerInfo("OpenGL quickly renderer destroyed");
 	}
+	if(library!=NULL)
+	{
+		RE_DestroyFontRenderer();
+		LoggerInfo("Font renderer destroyed");
+	}
 }
 
 int RE_BindTexture(Texture* texture)
 {
 	if(texture==NULL)
+	{
 		glBindTexture(GL_TEXTURE_2D,0);
+		return 0;
+	}	
 	else
+	{
 		glBindTexture(GL_TEXTURE_2D,texture->id);
+		return texture->id;
+	}
 }
 
 int RE_Render()
 {
 	static float amLight[] = {0.2,0.2,0.2,1};
-	Texture* texture;
+	static Texture* texture = NULL;
 	//-------------------绘制3D-------------------
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); //清理缓存
 	glClearColor( RE_CLEAR_COLOR ); //静怡的天蓝色
 	glClearDepth(1.0f);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); //清理缓存
 	RE_CheckGLError(RE_STAGE_BEFORE_DRAW_3D);
 	glMatrixMode(GL_PROJECTION); //重设定投影矩阵
 	glLoadIdentity();
@@ -107,20 +137,17 @@ int RE_Render()
 	glMatrixMode( GL_MODELVIEW ); //设定模型视角矩阵
 	glLoadIdentity();
 	glPushMatrix();
-	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST); //不开深度测试的话毁三观啊
 	glEnable(GL_TEXTURE_2D);
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_POINT_SMOOTH);
+	//glShadeModel(GL_SMOOTH);
+	//glEnable(GL_LINE_SMOOTH);
+	//glEnable(GL_POINT_SMOOTH);
 	//glEnable(GL_LIGHTING);
 	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT,amLight);
-	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
-	glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
+	//glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
+	//glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);
+	//glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
 	glTranslatef(0.0f, 0.0f, -42);
-	//glRotatef(tickTime,1,1,1);
-	//RE_drawCube(-1,1,-1,1,-1,1);
 	if(theWorld!=NULL)
 	{
 		WorldRender(theWorld);
@@ -146,7 +173,8 @@ int RE_Render()
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	texture=RM_GetTexture("image/bgGame.png");
+	if(texture==NULL)
+		texture=RM_GetTexture("image/bgGame.png");
 	RE_BindTexture(texture);
 	//glRotatef(tickTime,1,1,1);
 	RE_DrawRectWithTexture(0,0,1,1,0,0,800.0/1024.0,600.0/1024.0);
@@ -158,7 +186,7 @@ int RE_Render()
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 	SDL_GL_SwapWindow(window);
-	RE_CheckGLError(RE_STAGE_SWAP);
+	RE_CheckGLError(RE_STAGE_FINISH);
 	return 0;
 }
 
@@ -238,9 +266,9 @@ unsigned int RE_ProcessRawTexture( ImageData* rawData,int color,int format,unsig
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	//GL_RGBA
-	glTexImage2D(GL_TEXTURE_2D, 0, color, width, height, 0, format, GL_UNSIGNED_BYTE, rawData);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, rawData);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gluBuild2DMipmaps(GL_TEXTURE_2D,color,width,height,format,GL_UNSIGNED_BYTE, rawData);
+	//glTexImage2D(GL_TEXTURE_2D, 0, color, width, height, 0, format, GL_UNSIGNED_BYTE, rawData);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -256,37 +284,17 @@ void RE_UnloadTexture( unsigned int texture )
 
 int RE_CheckGLError(char* stage)
 {
-	int error = 0;
-	GLenum errorType;
-	char *reason;
-	while((errorType = glGetError())!=GL_NO_ERROR)
-	{
-		error=1;
-		switch(errorType)
+	GLenum error;
+	#ifndef DEBUG
+		if(stage!=RE_STAGE_FINISH)
 		{
-		case GL_INVALID_ENUM:
-			reason = "Invalid enum";
-			break;
-		case GL_INVALID_VALUE :
-			reason = "Invalid value";
-			break;
-		case GL_INVALID_OPERATION :
-			reason = "Invalid operation";
-			break;
-		case GL_STACK_OVERFLOW :
-			reason = "Stack overflow";
-			break;
-		case GL_STACK_UNDERFLOW :
-			reason = "Underflow";
-			break;
-		case GL_OUT_OF_MEMORY :
-			reason = "Out of memory";
-			break;
-		default:
-			reason = "Unknown";
-			break;
+			return 0;
 		}
-		LoggerWarn("An OpenGL error happened in [%s] : %s",stage,reason);
+	#endif
+	error = glGetError();
+	if(error!=GL_NO_ERROR)
+	{
+		LoggerWarn("An OpenGL error happened in [%s] : %s",stage,gluErrorString(error));
 	}
 	return error;
 }
@@ -373,3 +381,51 @@ void RE_RenderCubeQuick( int count )
 	glCallList(quicklyRenderList[count-1]);
 }
 
+int RE_InitFontRenderer(int width,int height)
+{
+	int result;
+	char *font;
+		return 0;
+	result = FT_Init_FreeType(&library);
+	if(result)
+	{
+		return result;
+	}
+	font = OS_GetFontPath(FONT_DEFAULT,FONT_BACKUP);
+	if(font=NULL)
+	{
+		LoggerFatal("Can't find font %s and %s",FONT_DEFAULT,FONT_BACKUP);
+		return -1;
+	}
+	result = FT_New_Face(library,font,0,&face);
+	free_s(font);
+	if(result)
+	{
+		return result;
+	}
+	result = FT_Set_Char_Size(face,0,16*64,width,height);
+	if(result)
+	{
+		return result;
+	}
+	return 0;
+}
+
+void RE_DestroyFontRenderer()
+{
+	if(face!=NULL)
+		FT_Done_Face(face);
+	FT_Done_FreeType(library);
+}
+
+void RE_DrawText( char* text,float x,float y,float width )
+{
+	FT_GlyphSlot slot = face->glyph;
+	FT_UInt glyph_index; 
+	int penX = windowWidth*x;
+	int penY = windowHeight*y;
+	while(*text!=0)
+	{
+		text++;
+	}
+}

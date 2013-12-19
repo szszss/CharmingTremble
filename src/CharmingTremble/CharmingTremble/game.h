@@ -4,6 +4,16 @@
 #define WINDOW_HEIGHT 600
 #define WINDOW_FRAME 1000/60
 
+#if defined(_WIN32) || defined(WIN32)
+	#define OS_WINDOWS
+	#define FONT_DEFAULT "msyh.ttf"
+	#define FONT_BACKUP "simsun.ttf"
+#elif defined(__LINUX) || defined(__LINUX__) || defined(LINUX)
+	#define OS_LINUX
+#elif defined(__APPLE__) || defined(__MACOSX__)
+	#define OS_MAC
+#endif
+
 #ifdef OS_WINDOWS //let's fuck WinDef
 	typedef int BOOL;
 	#define TRUE 1
@@ -56,6 +66,7 @@ enum WorldDifficulty {
 	DIFF_EXTRA=5,
 	DIFF_PHANTOM=6};
 
+//崩溃掉游戏...并抛出原因
 void GameCrash(char* cause);
 void GameExit();
 

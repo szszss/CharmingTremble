@@ -2,6 +2,7 @@
 #include "game.h"
 #include "collection.h"
 #include "entity.h"
+#include "util.h"
 
 struct implWorld
 {
@@ -16,6 +17,7 @@ struct implWorld
 	float upSpeed;
 	enum WorldType type;
 	enum WorldDifficulty difficulty;
+	MTRandomGen *randomGen;
 };
 
 World* WorldNewGame(char* playerName,long seed,enum WorldType type,enum WorldDifficulty difficulty);

@@ -9,71 +9,44 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 {
 	World *world = (World*)malloc_s(sizeof(World));
 	world->playerName=playerName;
-	world->player = (EntityPlayer*)malloc_s(sizeof(EntityPlayer));
-	world->player->base.prototype = &entityPrototypePlayer;
+	world->player = NULL;
 	world->score=0;
 	world->seed=seed;
+	world->tick=0;
 	world->type=type;
 	world->difficulty=difficulty;
-	world->upSpeed = 0.01f;
+	world->upSpeed = 0.15f;
 	world->powerupList=LinkedListCreate();
 	world->blockList=LinkedListCreate();
 	world->operateQueue=LinkedListCreate();
+	world->randomGen=MTCreate(seed);
+	LoggerInfo("A game world had been created");
 	return world;
 }
 
 void WorldStart(World* world)
 {
-	Texture *texture = NULL;
-	EntityBlock* block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
-	texture=RM_GetTexture("image/brick.png");
-	block->width=5;
-	block->base.posX=-5;
-	block->base.posY=-10;
-	block->texture=texture;
-	block->base.prototype=&entityPrototypeBlock;
+	EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,0,-1,5);
 	LinkedListAdd(world->blockList,block);
-	block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
-	block->width=7;
-	block->base.posX=4;
-	block->base.posY=2;
-	block->texture=texture;
-	block->base.prototype=&entityPrototypeBlock;
-	LinkedListAdd(world->blockList,block);
-	block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
-	block->width=1;
-	block->base.posX=9;
-	block->base.posY=8;
-	block->texture=texture;
-	block->base.prototype=&entityPrototypeBlock;
-	LinkedListAdd(world->blockList,block);
-	block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
-	block->width=20;
-	block->base.posX=0.5;
-	block->base.posY=-3;
-	block->texture=texture;
-	block->base.prototype=&entityPrototypeBlock;
-	LinkedListAdd(world->blockList,block);
-	block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
-	block->width=7;
-	block->base.posX=-4;
-	block->base.posY=5;
-	block->texture=texture;
-	block->base.prototype=&entityPrototypeBlock;
-	LinkedListAdd(world->blockList,block);
+	world->player = (EntityPlayer*)EntityPlayerCreate(world,0,0);
+	LoggerInfo("World started");
 }
 
 void WorldEnd(World* world)
 {
-
+	LoggerInfo("World ended");
 }
 
 void WorldDestory(World* world)
 {
 	//free_s(world->player);
+	LoggerInfo("Destroying world");
 	LinkedListDestory(world->blockList,CallbackDestroyEntity);
 	LinkedListDestory(world->powerupList,CallbackDestroyEntity);
 	CallbackDestroyEntity((void*)world->player);
+	MTDestroy(world->randomGen);
+	free_s(world);
+	LoggerInfo("World destroyed");
 	//TODO:销毁操作队列
 }
 
@@ -97,9 +70,21 @@ void UpdateEntityList(World* world,LinkedList *list)
 
 void WorldUpdate( World* world )
 {
+	if(world->tick%20==0)
+	{
+		int count = MTNextInt(world->randomGen,0,1);
+		if(count==1)
+		{
+			int x = MTNextInt(world->randomGen,0,19);
+			int length = MTNextInt(world->randomGen,3,10);
+			EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,(float)x-9.5f,-16,5);
+			LinkedListAdd(world->blockList,block);
+		}
+	}
 	UpdateEntityList(world,world->blockList);
 	UpdateEntityList(world,world->powerupList);
 	((Entity*)(world->player))->prototype->update(world->player,world);
+	world->tick++;
 }
 
 void RenderEntityList(World* world,LinkedList *list)

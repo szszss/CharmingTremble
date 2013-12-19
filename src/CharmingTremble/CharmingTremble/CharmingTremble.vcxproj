@@ -95,6 +95,7 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
     <ClCompile Include="entity.c" />
     <ClCompile Include="game.c" />
     <ClCompile Include="gui.c" />
+    <ClCompile Include="input.c" />
     <ClCompile Include="memory.c" />
     <ClCompile Include="oswork.c" />
     <ClCompile Include="renderengine.c" />
@@ -107,6 +108,7 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
     <ClInclude Include="entity.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="gui.h" />
+    <ClInclude Include="input.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="oswork.h" />
     <ClInclude Include="renderengine.h" />

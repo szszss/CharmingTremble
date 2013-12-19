@@ -2,7 +2,7 @@
 #define WINDOW_TITLE "Charming Tremble"
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
-#define WINDOW_FRAME 1000/60
+#define WINDOW_FRAME 1000/200
 
 #if defined(_WIN32) || defined(WIN32)
 	#define OS_WINDOWS
@@ -36,6 +36,8 @@ typedef struct implEntityPlayer         EntityPlayer;       //玩家实体
 
 typedef struct implTexture              Texture;            //纹理
 typedef struct implGuiButton            GuiButton;          //按钮
+
+typedef struct implOSM                  OSM;                //操作状态机
 
 typedef struct implLinkedList           LinkedList;         //链表
 typedef struct implLinkedListIterator   LinkedListIterator; //链表遍历器

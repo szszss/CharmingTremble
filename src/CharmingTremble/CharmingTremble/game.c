@@ -6,6 +6,7 @@
 #include "util.h"
 #include "entity.h"
 #include "world.h"
+#include "input.h"
 
 void GameClose();
 void GameMainLoop();
@@ -26,6 +27,7 @@ int main(int argc, char** argv)
 	LoggerInfo("SDL initialized");
 	RM_InitResourceManager();
 	RE_InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT);
+	IN_InitInput();
 	InitEntities();
 	GameMainLoop();
 	GameClose();
@@ -37,6 +39,7 @@ void GameMainLoop()
 	LoggerInfo("Starting game main loop");
 	theWorld = WorldNewGame("szszss",1000,TYPE_NORMAL,DIFF_NORMAL);
 	WorldStart(theWorld);
+	IN_Clear();
 	while(shouldRun)
 	{
 		if(Update() || RE_Render())
@@ -47,6 +50,7 @@ void GameMainLoop()
 	LoggerInfo("Game main loop broke.");
 	WorldEnd(theWorld);
 	WorldDestory(theWorld);
+	theWorld=NULL;
 }
 
 int Update()
@@ -58,6 +62,7 @@ int Update()
 		if(HandleEvent(sdlEvent))
 			return -1;
 	}
+	IN_UpdateInput();
 	if(theWorld!=NULL)
 	{
 		WorldUpdate(theWorld);
@@ -70,10 +75,12 @@ int HandleEvent(SDL_Event sdlEvent)
 	switch (sdlEvent.type)
 	{
 	case SDL_KEYDOWN:
-		
+		if(IN_KeyDown(sdlEvent.key.keysym.sym))
+			break;
 		break;
 	case SDL_KEYUP:
-
+		if(IN_KeyUp(sdlEvent.key.keysym.sym))
+			break;
 		break;
 	case SDL_TEXTINPUT:
 		
@@ -97,6 +104,9 @@ void GameCrash(char* cause)
 void GameClose()
 {
 	LoggerInfo("Closing game");
+	if(theWorld!=NULL)
+		WorldDestory(theWorld);
+	IN_DestroyInput();
 	RE_DestroyWindow();
 	RM_Close();
 	SDL_Quit();

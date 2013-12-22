@@ -205,3 +205,15 @@ void SBDestroy(StringBuilder *sb)
 {
 	free_s(sb);
 }
+
+Hash HashCode(char* string)
+{
+	static unsigned long seed = 131;
+	unsigned long hash = 0;
+	while (*string)  
+	{  
+		hash = hash * seed + (*string++);  
+	}  
+	hash &= 0x7FFFFFFF;
+	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
+}

@@ -1,5 +1,6 @@
 #include "collection.h"
 #include "memory.h"
+#include "util.h"
 #include <string.h>
 
 LinkedList* LinkedListCreate()
@@ -199,10 +200,27 @@ void* LinkedListIteratorDeleteCurrent(LinkedListIterator* iterator)
 	return LinkedListRemoveNode(iterator->host,iterator->currentNode);
 }
 
-typedef unsigned long Hash;
+void LinkedListIteratorPullUpCurrent( LinkedListIterator* iterator )
+{
+	_LinkedListNode *node = iterator->currentNode;
+	if(iterator->host->lastNode==node)
+	{
+		return;
+	}
+	iterator->currentNode=iterator->nextNode;
+	iterator->nextNode=iterator->currentNode==NULL?NULL:iterator->currentNode->next;
+	node->last->next=iterator->currentNode;
+	if(iterator->currentNode!=NULL)
+	{
+		iterator->currentNode->last=node->last;
+	}
+	node->next=iterator->host->headNode->next;
+	node->next->last=node;
+	iterator->host->headNode->next=node;
+	node->last=iterator->host->headNode;
+}
 
 _HashTreeNode* HashTreeNodeCreate(_HashTreeNode* parent,char* name,Hash hashCode,void* data);
-Hash HashCode(char* string);
 
 HashTree* HashTreeCreate()
 {
@@ -497,15 +515,4 @@ _HashTreeNode* HashTreeNodeCreate(_HashTreeNode* parent,char* name,Hash hashCode
 	node->nextNode=NULL;
 	node->value=data;
 	return node;
-}
-Hash HashCode(char* string)
-{
-	static unsigned long seed = 131;
-	unsigned long hash = 0;
-	while (*string)  
-	{  
-		hash = hash * seed + (*string++);  
-	}  
-	hash &= 0x7FFFFFFF;
-	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
 }

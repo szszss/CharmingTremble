@@ -65,3 +65,9 @@ StringBuilder* SBAppend(StringBuilder *sb,char* str);
 char* SBBuild(StringBuilder *sb);
 /*手动销毁一个StringBuilder,已Build的StringBuilder无需此步骤.*/
 void SBDestroy(StringBuilder *sb);
+
+#define MAX_STRING_HASH 1000000000
+#define DEFAULT_HBST_ROOT 500000000
+#define MAX_HBST_DEPTH 1023
+
+Hash HashCode(char* string);

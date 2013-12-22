@@ -7,6 +7,7 @@
 #include "entity.h"
 #include "world.h"
 #include "input.h"
+#include "math.h"
 
 void GameClose();
 void GameMainLoop();
@@ -25,6 +26,7 @@ int main(int argc, char** argv)
 	if(SDL_Init(SDL_INIT_EVERYTHING))
 		GameCrash("Initialized SDL failed");
 	LoggerInfo("SDL initialized");
+	MathInit();
 	RM_InitResourceManager();
 	RE_InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT);
 	IN_InitInput();

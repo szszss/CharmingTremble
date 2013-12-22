@@ -27,6 +27,7 @@
 #endif
 
 typedef unsigned char ImageData;
+typedef unsigned long Hash;
 
 typedef struct implWorld                World;              //游戏世界
 typedef struct implEntityPrototype      EntityPrototype;    //实体原型
@@ -35,6 +36,7 @@ typedef struct implEntityBlock          EntityBlock;        //砖块实体
 typedef struct implEntityPlayer         EntityPlayer;       //玩家实体
 
 typedef struct implTexture              Texture;            //纹理
+typedef struct implTextTexture          TextTexture;        //文字纹理
 typedef struct implGuiButton            GuiButton;          //按钮
 
 typedef struct implOSM                  OSM;                //操作状态机

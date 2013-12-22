@@ -3,6 +3,7 @@
 //#define RE_INIT_JUST_ERROR 255
 #pragma once
 #include "game.h"
+#include <wchar.h>
 
 #define RE_STAGE_BEFORE_DRAW_3D "Before drawing 3D"
 #define RE_STAGE_AFTER_DRAW_3D "After drawn 3D"
@@ -21,6 +22,14 @@ struct implTexture{
 	unsigned long width;
 	unsigned long height;
 	unsigned int id;
+};
+
+struct implTextTexture{
+	Texture texture;
+	Hash hash;
+	unsigned long *text;
+	BOOL isStatic;
+	int life;
 };
 
 /*初始化窗口,OPENGL和图形资源.*/
@@ -49,4 +58,5 @@ unsigned int RE_ProcessRawTexture(ImageData* rawData,int color,int format,unsign
 void RE_UnloadTexture(unsigned int texture);
 /*检查OpenGL内部错误,注意只有在Debug模式下才会检查每一个错误,Release模式下只有Rendering阶段才会进行检查.这是因为glGetError的开销很大.*/
 int RE_CheckGLError(char* stage);
-void RE_DrawText(char* text,float x,float y,float width);
+void RE_DrawTextStatic(unsigned long* text,float x,float y,float width);
+void RE_DrawTextVolatile(unsigned long* text,float x,float y,float width);

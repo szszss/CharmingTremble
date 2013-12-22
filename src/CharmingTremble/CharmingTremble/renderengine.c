@@ -4,8 +4,11 @@
 #include "memory.h"
 #include "oswork.h"
 #include "png.h"
+#include "math.h"
+#include "collection.h"
 #include "ft2build.h"
 #include FT_FREETYPE_H
+#include FT_BITMAP_H
 
 #ifdef OS_WINDOWS //其实用WIN32也行...
 #pragma comment( lib, "opengl32.lib")
@@ -31,11 +34,13 @@ void RE_RenderCubeDoCentre(float lx,float ly,float lz,float rx,float ry,float rz
 void RE_RenderCubeDoRight(float lx,float ly,float lz,float rx,float ry,float rz);
 void RE_DestroyQuicklyRender();
 void RE_DestroyFontRenderer();
+BOOL RE_DestroyTextTexture(void *texture);
 
 SDL_Window* window = NULL;
 SDL_GLContext glContext = NULL;
 FT_Library library = NULL;
 FT_Face face = NULL;
+static LinkedList *textTextureCache = NULL;
 static GLdouble aspect;
 static GLuint quicklyRenderList[20]={0};
 static int windowWidth;
@@ -179,6 +184,9 @@ int RE_Render()
 	//glRotatef(tickTime,1,1,1);
 	RE_DrawRectWithTexture(0,0,1,1,0,0,800.0/1024.0,600.0/1024.0);
 	RE_BindTexture(NULL);
+
+	//RE_DrawText(L"H",0,0,0);
+
 	RE_CheckGLError(RE_STAGE_AFTER_DRAW_2D);
 	glPopMatrix();
 	glFlush();
@@ -385,14 +393,12 @@ int RE_InitFontRenderer(int width,int height)
 {
 	int result;
 	char *font;
-		return 0;
+		//return 0;
 	result = FT_Init_FreeType(&library);
 	if(result)
-	{
 		return result;
-	}
 	font = OS_GetFontPath(FONT_DEFAULT,FONT_BACKUP);
-	if(font=NULL)
+	if(font==NULL)
 	{
 		LoggerFatal("Can't find font %s and %s",FONT_DEFAULT,FONT_BACKUP);
 		return -1;
@@ -400,15 +406,27 @@ int RE_InitFontRenderer(int width,int height)
 	result = FT_New_Face(library,font,0,&face);
 	free_s(font);
 	if(result)
-	{
 		return result;
-	}
-	result = FT_Set_Char_Size(face,0,16*64,width,height);
+	result = FT_Set_Char_Size(face,0,6*64,width,height);
 	if(result)
-	{
 		return result;
-	}
+	result = FT_Select_Charmap(face,FT_ENCODING_UNICODE);
+	if(result)
+		return result;
+	textTextureCache = LinkedListCreate();
 	return 0;
+}
+
+BOOL RE_DestroyTextTexture(void *texture)
+{
+	TextTexture *textTexture=(TextTexture*)texture;
+	if(!textTexture->isStatic)
+	{
+		free_s(textTexture->text);
+	}
+	RE_UnloadTexture(textTexture->texture.id);
+	free_s(textTexture);
+	return TRUE;
 }
 
 void RE_DestroyFontRenderer()
@@ -416,16 +434,59 @@ void RE_DestroyFontRenderer()
 	if(face!=NULL)
 		FT_Done_Face(face);
 	FT_Done_FreeType(library);
+	if(textTextureCache!=NULL)
+	{
+		LinkedListDestory(textTextureCache,RE_DestroyTextTexture);
+	}
 }
 
-void RE_DrawText( char* text,float x,float y,float width )
+void RE_DrawText( wchar_t* text,float x,float y,float width )
 {
+	GLubyte *bytes;
 	FT_GlyphSlot slot = face->glyph;
 	FT_UInt glyph_index; 
+	int i,j,w,h;
 	int penX = windowWidth*x;
 	int penY = windowHeight*y;
+	glRasterPos2f(0,0);
+	//glWindowPos2f(100,100);
+	//glRasterPos2f(x,y);
 	while(*text!=0)
 	{
+		glyph_index = FT_Get_Char_Index( face, text ); 
+		FT_Load_Glyph(face,glyph_index,FT_LOAD_RENDER|FT_LOAD_TARGET_NORMAL );  /* load flags, see below */
+		FT_Render_Glyph( slot,FT_RENDER_MODE_NORMAL);
+		w = MathNextPower2(slot->bitmap.width);
+		h = MathNextPower2(slot->bitmap.rows);
+		bytes = (GLubyte *)malloc_s(w*h*sizeof(GLubyte));
+		for(j=0; j <h;j++) {
+			for(i=0; i < w; i++){
+				bytes[i+j*w]= i>=slot->bitmap.width||j>=slot->bitmap.rows?0:slot->bitmap.buffer[i + w*j];
+			}
+		}
+		memcpy(bytes,slot->bitmap.buffer,w*h);
+		glBitmap(w,h,0,0,0,0,bytes);
+		free_s(bytes);
 		text++;
 	}
+}
+
+void RE_DrawTextStatic( unsigned long* text,float x,float y,float width )
+{
+	LinkedListIterator *iterator;
+	for(iterator=LinkedListGetIterator(textTextureCache);LinkedListIteratorHasNext(textTextureCache);)
+	{
+		TextTexture *texture = (TextTexture*)LinkedListIteratorGetNext(iterator);
+		if(texture->text==text)
+		{
+			LinkedListIteratorPullUpCurrent(iterator);
+			texture->life=100;
+			break;
+		}
+	}
+}
+
+void RE_DrawTextVolatile( unsigned long* text,float x,float y,float width )
+{
+
 }

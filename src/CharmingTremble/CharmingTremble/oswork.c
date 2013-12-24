@@ -2,6 +2,8 @@
 #include "memory.h"
 
 #ifdef OS_WINDOWS
+#include <Windows.h>
+
 BOOL FindFirstFileExists(LPCTSTR lpPath, DWORD dwFilter);
 BOOL FilePathExists(LPCTSTR lpPath);
 
@@ -53,4 +55,10 @@ BOOL OS_PathExist(char* path)
 {
 	return FilePathExists(path);
 }
+
+long long OS_GetMsTime()
+{
+	return GetTickCount();
+}
+
 #endif

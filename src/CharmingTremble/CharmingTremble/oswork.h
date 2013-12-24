@@ -1,9 +1,6 @@
 #pragma once
 #include "game.h"
 
-#ifdef OS_WINDOWS
-#include <Windows.h>
-#endif
-
+long long OS_GetMsTime();
 char* OS_GetFontPath(char* fontName,char* backupFontName);
 BOOL OS_PathExist(char* path);

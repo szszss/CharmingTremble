@@ -8,6 +8,7 @@
 #include "world.h"
 #include "input.h"
 #include "math.h"
+#include "oswork.h"
 
 void GameClose();
 void GameMainLoop();
@@ -38,16 +39,21 @@ int main(int argc, char** argv)
 
 void GameMainLoop()
 {
+	long long lastTime=OS_GetMsTime();
 	LoggerInfo("Starting game main loop");
 	theWorld = WorldNewGame("szszss",1000,TYPE_NORMAL,DIFF_NORMAL);
 	WorldStart(theWorld);
 	IN_Clear();
 	while(shouldRun)
 	{
-		if(Update() || RE_Render())
-			break;
-		SDL_Delay(WINDOW_FRAME);
-		tickTime++;
+		if(OS_GetMsTime()-lastTime>WINDOW_FRAME)
+		{
+			if(Update() || RE_Render())
+				break;
+			lastTime=OS_GetMsTime();
+			tickTime++;
+		}
+		SDL_Delay(1);
 	}
 	LoggerInfo("Game main loop broke.");
 	WorldEnd(theWorld);

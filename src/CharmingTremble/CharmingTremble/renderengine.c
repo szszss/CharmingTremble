@@ -58,7 +58,7 @@ int RE_InitWindow(int width,int height)
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,8);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,32);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,24); //深度缓冲如果过大会有奇妙的效果,我想也许是因为超过硬件支持的范围后,OpenGL只能采用软件模拟了
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
 	window = SDL_CreateWindow(WINDOW_TITLE,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,width,height,SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 	if(window==NULL)

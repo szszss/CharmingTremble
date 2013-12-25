@@ -2,7 +2,7 @@
 #define WINDOW_TITLE "Charming Tremble"
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
-#define WINDOW_FRAME 1000/200
+#define WINDOW_FRAME 1000/60
 
 #if defined(_WIN32) || defined(WIN32)
 	#define OS_WINDOWS

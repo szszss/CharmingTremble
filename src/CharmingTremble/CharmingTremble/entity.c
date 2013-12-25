@@ -87,11 +87,11 @@ int EntityPlayerUpdate(void* entity,World* world)
 	}
 	if(player->left||hTempMove<0)
 	{
-		player->base.posX-=0.4f;
+		player->base.posX-=0.2f;
 	}
 	else if(player->right||hTempMove>0)
 	{
-		player->base.posX+=0.4f;
+		player->base.posX+=0.2f;
 	}
 	if(player->landed)
 	{
@@ -99,22 +99,22 @@ int EntityPlayerUpdate(void* entity,World* world)
 		player->vSpeed=0.0f;
 		if(player->jump)
 		{
-			player->vSpeed+=1.0f;
+			player->vSpeed+=0.5f;
 		}
 	}
 	else
 	{
 		player->base.posY+=player->vSpeed;
-		player->vSpeed-=0.1f;
+		player->vSpeed-=0.05f;
 		
 	}
 	if(player->base.posY<-15)
 	{
-		player->vSpeed = 2;
+		player->vSpeed = 1;
 	}
-	if(player->vSpeed<-2.0f)
+	if(player->vSpeed<-1.0f)
 	{
-		player->vSpeed=-2.0f;
+		player->vSpeed=-1.0f;
 	}
 	player->landed=FALSE;
 	return 0;

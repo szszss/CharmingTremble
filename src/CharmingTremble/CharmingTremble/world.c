@@ -15,7 +15,7 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 	world->tick=0;
 	world->type=type;
 	world->difficulty=difficulty;
-	world->upSpeed = 0.15f;
+	world->upSpeed = 0.075f;
 	world->powerupList=LinkedListCreate();
 	world->blockList=LinkedListCreate();
 	world->operateQueue=LinkedListCreate();

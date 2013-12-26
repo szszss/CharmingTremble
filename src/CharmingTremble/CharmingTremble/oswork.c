@@ -26,10 +26,6 @@ char* OS_GetFontPath( char* fontName,char* backupFontName )
 		{
 			return OS_GetFontPath(backupFontName,NULL);
 		}
-		else
-		{
-			GameCrash(0); //TODO:Ò»¸ö´íÎóÂë
-		}
 	}
 	return NULL;
 }

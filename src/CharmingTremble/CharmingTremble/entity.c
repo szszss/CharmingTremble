@@ -99,7 +99,7 @@ int EntityPlayerUpdate(void* entity,World* world)
 		player->vSpeed=0.0f;
 		if(player->jump)
 		{
-			player->vSpeed+=0.5f;
+			player->vSpeed+=0.8f;
 		}
 	}
 	else
@@ -110,7 +110,7 @@ int EntityPlayerUpdate(void* entity,World* world)
 	}
 	if(player->base.posY<-15)
 	{
-		player->vSpeed = 1;
+		player->vSpeed = 1.5f;
 	}
 	if(player->vSpeed<-1.0f)
 	{
@@ -167,7 +167,7 @@ int EntityBlockUpdate(void* entity,World* world)
 	temp=(float)(block->width)/2;
 	widthLeft=block->base.posX-temp;
 	widthRight=block->base.posX+temp;
-	if(world->player->base.posX>(widthLeft-0.0f) && world->player->base.posX<(widthRight+0.0f))
+	if(world->player->base.posX>(widthLeft-0.2f) && world->player->base.posX<(widthRight+0.2f))
 	{
 		//LoggerDebug("yaya");
 		if((world->player->base.posY > block->base.posY-1.0f) && (world->player->base.posY - block->base.posY < 0.7f) && (world->player->vSpeed<=0))
@@ -194,7 +194,7 @@ void EntityBlockRender(void* entity,World* world)
 {
 	EntityBlock *block = (EntityBlock*)entity;
 	int width = block->width;
-	float fWidth = (float)width/2.0f;;
+	//float fWidth = (float)width/2.0f;;
 	if(width<1)
 	{
 		LoggerDebug("A block has a wrong width:%d It won't be rendered",width);

@@ -7,7 +7,7 @@
 #if defined(_WIN32) || defined(WIN32)
 	#define OS_WINDOWS
 	#define FONT_DEFAULT "msyh.ttf"
-	#define FONT_BACKUP "simsun.ttf"
+	#define FONT_BACKUP "simsun.ttc"
 #elif defined(__LINUX) || defined(__LINUX__) || defined(LINUX)
 	#define OS_LINUX
 #elif defined(__APPLE__) || defined(__MACOSX__)

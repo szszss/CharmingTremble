@@ -1,5 +1,9 @@
 #include "math.h"
 #include "util.h"
+#include <math.h>
+
+#define EPSINON_FLOAT 0.00001f
+#define EPSINON_DOUBLE 0.0000001
 
 static unsigned long power2[32];
 
@@ -41,4 +45,14 @@ unsigned long MathNextPower2( unsigned long v )
 		v<=16384?16384:
 		v<=32768?32768:
 		v<=*/
+}
+
+BOOL MathFloatEqual( float a,float b )
+{
+	return fabs(a-b)<EPSINON_FLOAT;
+}
+
+BOOL MathDoubleEqual( double a,double b )
+{
+	return abs(a-b)<EPSINON_DOUBLE;
 }

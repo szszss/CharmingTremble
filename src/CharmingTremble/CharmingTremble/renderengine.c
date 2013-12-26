@@ -35,6 +35,7 @@ void RE_RenderCubeDoRight(float lx,float ly,float lz,float rx,float ry,float rz)
 void RE_DestroyQuicklyRender();
 void RE_DestroyFontRenderer();
 BOOL RE_DestroyTextTexture(void *texture);
+TextTexture* RE_ProcessTextTexture(unsigned long* unicodeText,float maxWidth);
 
 SDL_Window* window = NULL;
 SDL_GLContext glContext = NULL;
@@ -186,6 +187,7 @@ int RE_Render()
 	RE_BindTexture(NULL);
 
 	//RE_DrawText(L"H",0,0,0);
+	RE_DrawTextStatic(L"ŒÅ",0.01,0.01,1);
 
 	RE_CheckGLError(RE_STAGE_AFTER_DRAW_2D);
 	glPopMatrix();
@@ -347,7 +349,8 @@ int RE_InitQuicklyRender()
 			}
 			if(j==1)
 			{
-				x = -0.5f - (float)(i-1)/2;
+				x = - (float)(i-1)/2;
+				//x = -0.5f - (float)(i-1)/2;
 				glBegin(GL_QUADS);
 				RE_RenderCubeDoLeft(-0.5f+x,0.5f,-0.5f,0.5f+x,-0.5f,0.5f);
 				RE_RenderCubeDoCentre(-0.5f+x,0.5f,-0.5f,0.5f+x,-0.5f,0.5f);
@@ -407,7 +410,7 @@ int RE_InitFontRenderer(int width,int height)
 	free_s(font);
 	if(result)
 		return result;
-	result = FT_Set_Char_Size(face,0,6*64,width,height);
+	result = FT_Set_Char_Size(face,32<<6,28<<6,0,0);
 	if(result)
 		return result;
 	result = FT_Select_Charmap(face,FT_ENCODING_UNICODE);
@@ -440,53 +443,68 @@ void RE_DestroyFontRenderer()
 	}
 }
 
-void RE_DrawText( wchar_t* text,float x,float y,float width )
-{
-	GLubyte *bytes;
-	FT_GlyphSlot slot = face->glyph;
-	FT_UInt glyph_index; 
-	int i,j,w,h;
-	int penX = windowWidth*x;
-	int penY = windowHeight*y;
-	glRasterPos2f(0,0);
-	//glWindowPos2f(100,100);
-	//glRasterPos2f(x,y);
-	while(*text!=0)
-	{
-		glyph_index = FT_Get_Char_Index( face, text ); 
-		FT_Load_Glyph(face,glyph_index,FT_LOAD_RENDER|FT_LOAD_TARGET_NORMAL );  /* load flags, see below */
-		FT_Render_Glyph( slot,FT_RENDER_MODE_NORMAL);
-		w = MathNextPower2(slot->bitmap.width);
-		h = MathNextPower2(slot->bitmap.rows);
-		bytes = (GLubyte *)malloc_s(w*h*sizeof(GLubyte));
-		for(j=0; j <h;j++) {
-			for(i=0; i < w; i++){
-				bytes[i+j*w]= i>=slot->bitmap.width||j>=slot->bitmap.rows?0:slot->bitmap.buffer[i + w*j];
-			}
-		}
-		memcpy(bytes,slot->bitmap.buffer,w*h);
-		glBitmap(w,h,0,0,0,0,bytes);
-		free_s(bytes);
-		text++;
-	}
-}
-
 void RE_DrawTextStatic( unsigned long* text,float x,float y,float width )
 {
 	LinkedListIterator *iterator;
-	for(iterator=LinkedListGetIterator(textTextureCache);LinkedListIteratorHasNext(textTextureCache);)
+	TextTexture *texture = NULL;
+	for(iterator=LinkedListGetIterator(textTextureCache);LinkedListIteratorHasNext(iterator);)
 	{
-		TextTexture *texture = (TextTexture*)LinkedListIteratorGetNext(iterator);
-		if(texture->text==text)
+		texture = (TextTexture*)LinkedListIteratorGetNext(iterator);
+		if(texture->text==text && MathFloatEqual(texture->width,width))
 		{
 			LinkedListIteratorPullUpCurrent(iterator);
 			texture->life=100;
 			break;
 		}
 	}
+	if(texture==NULL)
+	{
+		texture = RE_ProcessTextTexture(text,width);
+		texture->width = width;
+		texture->text=text;
+		texture->isStatic=TRUE;
+		texture->life=100;
+		LinkedListOffer(textTextureCache,texture);
+	}
+	RE_BindTexture(&(texture->texture));
+	RE_DrawRectWithTexture(x,y,texture->texture.width/(float)windowWidth,texture->texture.height/(float)windowHeight,0,0,1,1);
 }
 
 void RE_DrawTextVolatile( unsigned long* text,float x,float y,float width )
 {
 
+}
+
+TextTexture* RE_ProcessTextTexture( unsigned long* unicodeText,float maxWidth )
+{
+	GLubyte *bytes;
+	FT_GlyphSlot slot = face->glyph;
+	FT_UInt glyph_index; 
+	int i,j,w,h;
+	TextTexture* texture;
+	while(*unicodeText!=0)
+	{
+		glyph_index = FT_Get_Char_Index( face, *unicodeText ); 
+		FT_Load_Glyph(face,glyph_index,FT_LOAD_TARGET_NORMAL  );  /* load flags, see below */
+		FT_Render_Glyph( slot,FT_RENDER_MODE_NORMAL);
+		//w = MathNextPower2(slot->bitmap.width);
+		//h = MathNextPower2(slot->bitmap.rows);
+		w = slot->bitmap.width;
+		h = slot->bitmap.rows;
+		bytes = (GLubyte *)malloc_s(w*h*sizeof(GLubyte));
+		//memset(bytes,0,w*h*sizeof(GLubyte));
+		for(j=0; j <h;j++) {
+			for(i=0; i < w; i++){
+				bytes[i+(h-j-1)*w]= i>=slot->bitmap.width||j>=slot->bitmap.rows?0:slot->bitmap.buffer[i + w*j];
+			}
+		}
+		//memcpy(bytes,slot->bitmap.buffer,w*h);
+		texture = (TextTexture*)malloc_s(sizeof(TextTexture));
+		texture->texture.id = RE_ProcessRawTexture(bytes,GL_ALPHA8,GL_ALPHA,slot->bitmap.width,slot->bitmap.rows);
+		texture->texture.width=w;
+		texture->texture.height=h;
+		free_s(bytes);
+		return texture;
+		unicodeText++;
+	}
 }

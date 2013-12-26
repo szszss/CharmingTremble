@@ -107,6 +107,7 @@ void GameCrash(char* cause)
 {
 	LoggerFatal(cause);
 	GameClose();
+	exit(EXIT_FAILURE);
 }
 
 void GameClose()

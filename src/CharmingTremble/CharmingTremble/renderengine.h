@@ -28,6 +28,7 @@ struct implTextTexture{
 	Texture texture;
 	Hash hash;
 	unsigned long *text;
+	float width;
 	BOOL isStatic;
 	int life;
 };

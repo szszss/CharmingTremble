@@ -153,11 +153,12 @@ int LoggerError(char* text,...)
 int LoggerFatal(char* text,...)
 {
 	va_list args;
+	int result = 0;
 	va_start(args, text);
 	if(logger.level&LOGGER_LEVEL_FATAL)
-		return LoggerOutput("Fatal",text,args);
+		result = LoggerOutput("Fatal",text,args);
 	va_end(args);
-	return 0;
+	return result;
 }
 //int LoggerFatalln(char* text);
 void LoggerClose()

@@ -152,7 +152,10 @@ void* LinkedListPoll(LinkedList* linkedList,BOOL* result)
 unsigned long LinkedListDestory(LinkedList* linkedList,int (*callbackFunction)(void* ))
 {
 	_LinkedListNode *deleted = NULL;
-	_LinkedListNode *node = linkedList->headNode->next;
+	_LinkedListNode *node;
+	if(linkedList==NULL)
+		return 0;
+	node = linkedList->headNode->next;
 	while(node!=NULL)
 	{
 		if(callbackFunction(node->value))
@@ -498,7 +501,10 @@ BOOL _HashTreeNodeDestroy(_HashTreeNode* node,void (*callbackFunction)(void* ),B
 }
 BOOL HashTreeDestroy(HashTree* ht,void (*callbackFunction)(void* ))
 {
-	BOOL result = _HashTreeNodeDestroy(ht->rootNode,callbackFunction,TRUE);
+	BOOL result;
+	if(ht==NULL)
+		return TRUE;
+	result = _HashTreeNodeDestroy(ht->rootNode,callbackFunction,TRUE);
 	if(result == TRUE)
 		free(ht);
 	return result;

@@ -410,13 +410,15 @@ int RE_InitFontRenderer(int width,int height)
 	free_s(font);
 	if(result)
 		return result;
-	result = FT_Set_Char_Size(face,32<<6,28<<6,0,0);
+	//result = FT_Set_Pixel_Sizes(face,32,0);
+	result = FT_Set_Char_Size(face,4<<6,0,300,300);
 	if(result)
 		return result;
 	result = FT_Select_Charmap(face,FT_ENCODING_UNICODE);
 	if(result)
 		return result;
 	textTextureCache = LinkedListCreate();
+	//SDL_Delay(3000);
 	return 0;
 }
 
@@ -478,33 +480,59 @@ void RE_DrawTextVolatile( unsigned long* text,float x,float y,float width )
 TextTexture* RE_ProcessTextTexture( unsigned long* unicodeText,float maxWidth )
 {
 	GLubyte *bytes;
+	GLuint textureID;
 	FT_GlyphSlot slot = face->glyph;
 	FT_UInt glyph_index; 
-	int i,j,w,h;
+	int i,j,w,h,k; //5个路人甲
+	int headX=0,headY=0;
 	TextTexture* texture;
+	int lineHeight;
+	int maxX,maxY,usedLine=1;
+	lineHeight = (face->size->metrics.y_ppem>>6)+(face->size->metrics.descender>>6)+(face->size->metrics.ascender>>6)+4;
+	//lineHeight /= 2;
+	//maxX = MathNextPower2((unsigned int)(windowWidth*maxWidth));
+	//maxY = MathNextPower2(lineHeight*4);
+	maxX = MathNextPower2(100);
+	maxY = MathNextPower2(lineHeight);
+	bytes = (GLubyte *)malloc_s(maxX*maxY*sizeof(GLubyte));
+	memset(bytes,255,maxX*maxY*sizeof(GLubyte));
 	while(*unicodeText!=0)
 	{
 		glyph_index = FT_Get_Char_Index( face, *unicodeText ); 
-		FT_Load_Glyph(face,glyph_index,FT_LOAD_TARGET_NORMAL  );  /* load flags, see below */
+		FT_Load_Glyph(face,glyph_index, FT_LOAD_NO_BITMAP  );
 		FT_Render_Glyph( slot,FT_RENDER_MODE_NORMAL);
-		//w = MathNextPower2(slot->bitmap.width);
-		//h = MathNextPower2(slot->bitmap.rows);
 		w = slot->bitmap.width;
 		h = slot->bitmap.rows;
-		bytes = (GLubyte *)malloc_s(w*h*sizeof(GLubyte));
-		//memset(bytes,0,w*h*sizeof(GLubyte));
+		if(*unicodeText=='\n'||headX+w>=maxX)
+		{
+			headX=0;
+			headY+=lineHeight;
+			usedLine++;
+		}
+		k=0;
 		for(j=0; j <h;j++) {
 			for(i=0; i < w; i++){
-				bytes[i+(h-j-1)*w]= i>=slot->bitmap.width||j>=slot->bitmap.rows?0:slot->bitmap.buffer[i + w*j];
+				bytes[headX+i+(headY+j)*maxX]= i>=slot->bitmap.width||j>=slot->bitmap.rows?255:slot->bitmap.buffer[k++];
 			}
 		}
-		//memcpy(bytes,slot->bitmap.buffer,w*h);
-		texture = (TextTexture*)malloc_s(sizeof(TextTexture));
-		texture->texture.id = RE_ProcessRawTexture(bytes,GL_ALPHA8,GL_ALPHA,slot->bitmap.width,slot->bitmap.rows);
-		texture->texture.width=w;
-		texture->texture.height=h;
-		free_s(bytes);
-		return texture;
+		headX+=slot->bitmap.width;
 		unicodeText++;
+		break;
 	}
+	texture = (TextTexture*)malloc_s(sizeof(TextTexture));
+	//生成文字纹理
+	RE_CheckGLError(RE_STAGE_BEFORE_PROCESS_TEXTURE);
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D,0,GL_ALPHA8,maxX,maxY,0,GL_ALPHA,GL_UNSIGNED_BYTE, bytes);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	RE_CheckGLError(RE_STAGE_AFTER_PROCESS_TEXTURE);
+	texture->texture.id = textureID;
+	texture->texture.width=maxX;
+	texture->texture.height=maxY;
+	free_s(bytes);
+	return texture;
 }

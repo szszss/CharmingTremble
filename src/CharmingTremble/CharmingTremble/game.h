@@ -26,7 +26,7 @@
 	#endif
 #endif
 
-typedef unsigned char ImageData;
+typedef unsigned char ImageData; //awesome byte...
 typedef unsigned long Hash;
 
 typedef struct implWorld                World;              //游戏世界

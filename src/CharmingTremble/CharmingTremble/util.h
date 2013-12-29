@@ -71,3 +71,6 @@ void SBDestroy(StringBuilder *sb);
 #define MAX_HBST_DEPTH 1023
 
 Hash HashCode(char* string);
+
+unsigned long* UTF8ToUTF32(char* utf8Text);
+//char* UTF32ToUTF8(unsigned long* utf32Text);

@@ -35,7 +35,7 @@ void RE_RenderCubeDoRight(float lx,float ly,float lz,float rx,float ry,float rz)
 void RE_DestroyQuicklyRender();
 void RE_DestroyFontRenderer();
 BOOL RE_DestroyTextTexture(void *texture);
-TextTexture* RE_ProcessTextTexture(unsigned long* unicodeText,float maxWidth);
+TextTexture* RE_ProcessTextTexture(char* utf8Text,float maxWidth);
 
 SDL_Window* window = NULL;
 SDL_GLContext glContext = NULL;
@@ -187,7 +187,7 @@ int RE_Render()
 	RE_BindTexture(NULL);
 
 	//RE_DrawText(L"H",0,0,0);
-	RE_DrawTextStatic(L"屌",0.01,0.01,1);
+	RE_DrawTextStatic("屌",0.01,0.01,1);
 
 	RE_CheckGLError(RE_STAGE_AFTER_DRAW_2D);
 	glPopMatrix();
@@ -445,7 +445,7 @@ void RE_DestroyFontRenderer()
 	}
 }
 
-void RE_DrawTextStatic( unsigned long* text,float x,float y,float width )
+void RE_DrawTextStatic( char* text,float x,float y,float width )
 {
 	LinkedListIterator *iterator;
 	TextTexture *texture = NULL;
@@ -472,14 +472,15 @@ void RE_DrawTextStatic( unsigned long* text,float x,float y,float width )
 	RE_DrawRectWithTexture(x,y,texture->texture.width/(float)windowWidth,texture->texture.height/(float)windowHeight,0,0,1,1);
 }
 
-void RE_DrawTextVolatile( unsigned long* text,float x,float y,float width )
+void RE_DrawTextVolatile( char* text,float x,float y,float width )
 {
 
 }
 
-TextTexture* RE_ProcessTextTexture( unsigned long* unicodeText,float maxWidth )
+TextTexture* RE_ProcessTextTexture( char* utf8Text,float maxWidth )
 {
-	GLubyte *bytes;
+	GLubyte *bytes,*revBytes;
+	FT_ULong *unicodeText = NULL;
 	GLuint textureID;
 	FT_GlyphSlot slot = face->glyph;
 	FT_UInt glyph_index; 
@@ -488,14 +489,16 @@ TextTexture* RE_ProcessTextTexture( unsigned long* unicodeText,float maxWidth )
 	TextTexture* texture;
 	int lineHeight;
 	int maxX,maxY,usedLine=1;
+	unicodeText = UTF8ToUTF32(utf8Text);
 	lineHeight = (face->size->metrics.y_ppem>>6)+(face->size->metrics.descender>>6)+(face->size->metrics.ascender>>6)+4;
 	//lineHeight /= 2;
+	maxX = MathNextMultiple8((unsigned int)(windowWidth*maxWidth));
 	//maxX = MathNextPower2((unsigned int)(windowWidth*maxWidth));
-	//maxY = MathNextPower2(lineHeight*4);
-	maxX = MathNextPower2(100);
-	maxY = MathNextPower2(lineHeight);
+	maxY = MathNextPower2(lineHeight*4);
+	//maxX = MathNextPower2(100);
+	//maxY = MathNextPower2(lineHeight);
 	bytes = (GLubyte *)malloc_s(maxX*maxY*sizeof(GLubyte));
-	memset(bytes,255,maxX*maxY*sizeof(GLubyte));
+	memset(bytes,0,maxX*lineHeight*sizeof(GLubyte));
 	while(*unicodeText!=0)
 	{
 		glyph_index = FT_Get_Char_Index( face, *unicodeText ); 
@@ -507,24 +510,47 @@ TextTexture* RE_ProcessTextTexture( unsigned long* unicodeText,float maxWidth )
 		{
 			headX=0;
 			headY+=lineHeight;
+			memset(bytes+lineHeight*usedLine,0,maxX*lineHeight*sizeof(GLubyte));
 			usedLine++;
 		}
 		k=0;
 		for(j=0; j <h;j++) {
 			for(i=0; i < w; i++){
-				bytes[headX+i+(headY+j)*maxX]= i>=slot->bitmap.width||j>=slot->bitmap.rows?255:slot->bitmap.buffer[k++];
+				bytes[headX+i+(headY+j)*maxX]= i>=slot->bitmap.width||j>=slot->bitmap.rows?0:slot->bitmap.buffer[k++];
 			}
 		}
 		headX+=slot->bitmap.width;
 		unicodeText++;
-		break;
+		//break;
 	}
+	maxY=lineHeight*usedLine;
+	if(usedLine==1)
+	{
+		int temp = MathNextMultiple8(headX);
+		temp=temp>maxX?maxX:temp;
+		revBytes = (GLubyte *)malloc_s(temp*maxY*sizeof(GLubyte));
+		for(j=0;j<maxY;j++)
+		{
+			memcpy(revBytes+((maxY-j-1)*temp),bytes+(j*maxX),temp);
+		}
+		maxX = temp;
+	}
+	else
+	{
+		revBytes = (GLubyte *)malloc_s(maxX*maxY*sizeof(GLubyte));
+		for(j=0;j<maxY;j++)
+		{
+			memcpy(revBytes+((maxY-j-1)*maxX),bytes+(j*maxX),maxX);
+		}
+	}
+	
+	free_s(bytes);
 	texture = (TextTexture*)malloc_s(sizeof(TextTexture));
 	//生成文字纹理
 	RE_CheckGLError(RE_STAGE_BEFORE_PROCESS_TEXTURE);
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D,0,GL_ALPHA8,maxX,maxY,0,GL_ALPHA,GL_UNSIGNED_BYTE, bytes);
+	glTexImage2D(GL_TEXTURE_2D,0,GL_ALPHA8,maxX,maxY,0,GL_ALPHA,GL_UNSIGNED_BYTE, revBytes);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -533,6 +559,7 @@ TextTexture* RE_ProcessTextTexture( unsigned long* unicodeText,float maxWidth )
 	texture->texture.id = textureID;
 	texture->texture.width=maxX;
 	texture->texture.height=maxY;
-	free_s(bytes);
+	free_s(revBytes);
+	free_s(unicodeText);
 	return texture;
 }

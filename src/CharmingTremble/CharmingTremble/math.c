@@ -56,3 +56,9 @@ BOOL MathDoubleEqual( double a,double b )
 {
 	return abs(a-b)<EPSINON_DOUBLE;
 }
+
+unsigned long MathNextMultiple8( unsigned long v )
+{
+	unsigned long i=v%8;
+	return i==0?v:v+8-i;
+}

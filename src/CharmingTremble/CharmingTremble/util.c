@@ -218,3 +218,81 @@ Hash HashCode(char* string)
 	hash &= 0x7FFFFFFF;
 	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
 }
+
+static const char BINARY_10000000 = 0x80;
+static const char BINARY_11000000 = 0xC0;
+static const char BINARY_11100000 = 0xE0;
+static const char BINARY_11110000 = 0xF0;
+static const char BINARY_00011111 = 0x1F;
+static const char BINARY_00001111 = 0x0F;
+static const char BINARY_00000111 = 0x07;
+static const char BINARY_00111111 = 0x3F;
+
+unsigned long* UTF8ToUTF32( char* utf8Text )
+{
+	unsigned long *buffer;
+	unsigned long *utf32Text;
+	long sourceLength = strlen(utf8Text);
+	char c8;
+	unsigned long c32; 
+	long i,j;
+	buffer = (unsigned long *)malloc_s((sourceLength+1)*sizeof(unsigned long));
+	for(i=0,j=0;j<sourceLength;i++,j++)
+	{
+		c32=0;
+		c8=utf8Text[j];
+		if(c8>0)
+		{
+			c32=c8;
+		}
+		else
+		{
+			int count;
+			if(c8&BINARY_11100000==BINARY_11100000)
+				count=2;
+			else if(c8&BINARY_11100000==BINARY_11100000)
+				count=1;
+			else if(c8&BINARY_11110000==BINARY_11110000)
+				count=3;
+			else
+			{
+				count=0;
+				LoggerWarn("An unknown utf8 character was met when UTF8ToUTF32:%d",(int)c8);
+			}
+			switch(count)
+			{
+			case 3:
+				c32+=(c8&BINARY_00000111)<<18;
+				break;
+			case 2:
+				c32+=(c8&BINARY_00001111)<<12;
+				break;
+			case 1:
+				c32+=(c8&BINARY_00011111)<<6;
+				break;
+			default:
+				c32=0x25A1;
+				break;
+			}
+			switch(count)
+			{
+			case 3:
+				c8=utf8Text[++j];
+				c32+=(c8&BINARY_00111111)<<12;
+			case 2:
+				c8=utf8Text[++j];
+				c32+=(c8&BINARY_00111111)<<6;
+			case 1:
+				c8=utf8Text[++j];
+				c32+=(c8&BINARY_00111111);
+				break;
+			}
+		}
+		buffer[i]=c32;
+	}
+	buffer[i]=0;
+	utf32Text=(unsigned long*)malloc_s(i*sizeof(unsigned long));
+	memcpy(utf32Text,buffer,i);
+	free_s(buffer);
+	return utf32Text;
+}

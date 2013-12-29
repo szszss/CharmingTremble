@@ -1,10 +1,11 @@
-#include "util.h"
+ï»¿#include "util.h"
+#include "oswork.h"
 #include "memory.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
-//Ã·É­Ğı×ªËã·¨Ëæ»úÊı·¢ÉúÆ÷
+//æ¢…æ£®æ—‹è½¬ç®—æ³•éšæœºæ•°å‘ç”Ÿå™¨
 
 MTRandomGen* MTCreate(long seed)
 {
@@ -86,7 +87,7 @@ void LoggerCreate(BOOL logInFile,char* fileName,enum LoggerMode mode,int level,c
 			logger.fileAvailable=FALSE;
 			return;
 		}
-		//¼ì²éÈÕÖ¾ÎÄ¼şÊÇ·ñ´ò¿ª³É¹¦
+		//æ£€æŸ¥æ—¥å¿—æ–‡ä»¶æ˜¯å¦æ‰“å¼€æˆåŠŸ
 		if(logger.loggerFile == NULL)
 		{
 			logger.fileAvailable=FALSE;
@@ -248,11 +249,11 @@ unsigned long* UTF8ToUTF32( char* utf8Text )
 		else
 		{
 			int count;
-			if(c8&BINARY_11100000==BINARY_11100000)
+			if((char)(c8&BINARY_11100000)==BINARY_11100000)
 				count=2;
-			else if(c8&BINARY_11100000==BINARY_11100000)
+			else if((char)(c8&BINARY_11000000)==BINARY_11000000)
 				count=1;
-			else if(c8&BINARY_11110000==BINARY_11110000)
+			else if((char)(c8&BINARY_11110000)==BINARY_11110000)
 				count=3;
 			else
 			{
@@ -291,8 +292,20 @@ unsigned long* UTF8ToUTF32( char* utf8Text )
 		buffer[i]=c32;
 	}
 	buffer[i]=0;
-	utf32Text=(unsigned long*)malloc_s(i*sizeof(unsigned long));
-	memcpy(utf32Text,buffer,i);
+	utf32Text=(unsigned long*)malloc_s((i+1)*sizeof(unsigned long));
+	memcpy(utf32Text,buffer,(i+1)*sizeof(unsigned long));
 	free_s(buffer);
 	return utf32Text;
+}
+
+wchar_t* UTF8ToANSI( char* utf8Text )
+{
+	unsigned long length = strlen(utf8Text);
+	wchar_t* ansiText = (wchar_t*)malloc_s((length+2)*sizeof(wchar_t));
+	memset(ansiText,0,(length+2)*sizeof(wchar_t));
+	if(OS_UTF8ToANSI_DO(utf8Text,ansiText,length))
+	{
+		LoggerWarn("A possible overflow happened when UTF8ToANSI:%s",utf8Text);
+	}
+	return ansiText;
 }

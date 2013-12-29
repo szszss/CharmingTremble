@@ -1,4 +1,4 @@
-#include "math.h"
+ï»¿#include "math.h"
 #include "util.h"
 #include <math.h>
 
@@ -15,7 +15,7 @@ void MathInit()
 		power2[i]=j;
 		j=j<<1;
 	}
-	LoggerInfo("Math library initialized");//ÊýÑ§¿â³õÊ¼»¯²»»áÊ§°Ü...
+	LoggerInfo("Math library initialized");//æ•°å­¦åº“åˆå§‹åŒ–ä¸ä¼šå¤±è´¥...
 }
 
 unsigned long MathNextPower2( unsigned long v )

@@ -1,4 +1,4 @@
-#include "world.h"
+ï»¿#include "world.h"
 #include "memory.h"
 #include "resourcemanager.h"
 
@@ -47,7 +47,7 @@ void WorldDestory(World* world)
 	MTDestroy(world->randomGen);
 	free_s(world);
 	LoggerInfo("World destroyed");
-	//TODO:Ïú»Ù²Ù×÷¶ÓÁĞ
+	//TODO:é”€æ¯æ“ä½œé˜Ÿåˆ—
 }
 
 void UpdateEntityList(World* world,LinkedList *list)

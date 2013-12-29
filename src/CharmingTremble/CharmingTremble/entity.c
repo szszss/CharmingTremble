@@ -1,4 +1,4 @@
-#include "entity.h"
+﻿#include "entity.h"
 #include "memory.h"
 #include "renderengine.h"
 #include "resourcemanager.h"

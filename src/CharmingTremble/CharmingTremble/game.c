@@ -1,4 +1,4 @@
-#include "game.h"
+Ôªø#include "game.h"
 #include <stdlib.h>
 #include "renderengine.h"
 #include "resourcemanager.h"
@@ -22,6 +22,7 @@ World* theWorld = NULL;
 int main(int argc, char** argv)
 {
 	//int result;
+	OS_Init();
 	LoggerCreate(TRUE,"log.txt",LOGGER_APPEND,LOGGER_LEVEL_ALL,LOGGER_FORMAT_C);
 	LoggerInfo("Initializing game");
 	if(SDL_Init(SDL_INIT_EVERYTHING))
@@ -63,7 +64,7 @@ void GameMainLoop()
 
 int Update()
 {
-	//¥¶¿Ì ¬º˛
+	//Â§ÑÁêÜ‰∫ã‰ª∂
 	SDL_Event sdlEvent;
 	while(SDL_PollEvent(&sdlEvent))
 	{

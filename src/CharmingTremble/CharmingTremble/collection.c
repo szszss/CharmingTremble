@@ -1,4 +1,4 @@
-#include "collection.h"
+ï»¿#include "collection.h"
 #include "memory.h"
 #include "util.h"
 #include <string.h>
@@ -47,7 +47,7 @@ unsigned long LinkedListInsert(LinkedList* linkedList,unsigned long index,void* 
 }
 void* LinkedListGet(LinkedList* linkedList,unsigned long index,BOOL* result)
 {
-	//XXX:ÆäÊµ¿ÉÒÔÅÐ¶ÏindexÓëlengthµÄ¹ØÏµ,È»ºóÑ¡ÔñÐÔµØ×öµ¹ÐòËÑË÷.
+	//XXX:å…¶å®žå¯ä»¥åˆ¤æ–­indexä¸Žlengthçš„å…³ç³»,ç„¶åŽé€‰æ‹©æ€§åœ°åšå€’åºæœç´¢.
 	_LinkedListNode *node;
 	if(index>=linkedList->length)
 	{
@@ -56,7 +56,7 @@ void* LinkedListGet(LinkedList* linkedList,unsigned long index,BOOL* result)
 		return NULL;
 	}
 	node=linkedList->headNode;
-	for(;index>=0;index--) //ÒòÎªheadNodeÊÇ²»Ê¹ÓÃµÄ,ËùÒÔÊÇ>=
+	for(;index>=0;index--) //å› ä¸ºheadNodeæ˜¯ä¸ä½¿ç”¨çš„,æ‰€ä»¥æ˜¯>=
 	{
 		node=node->next;
 	}
@@ -258,7 +258,7 @@ BOOL _HashTreeInsert(_HashTreeNode* inserted,_HashTreeNode* inserting)
 			}
 			curNode=curNode->rightNode;
 		}
-		//ÎÒ¼ÙÉèÔÚ¶þ´Î²åÈëÊ±²»´æÔÚHashÅö×²ÏÖÏó
+		//æˆ‘å‡è®¾åœ¨äºŒæ¬¡æ’å…¥æ—¶ä¸å­˜åœ¨Hashç¢°æ’žçŽ°è±¡
 	}
 	return TRUE;
 }
@@ -396,7 +396,7 @@ void* HashTreeRemove(HashTree* ht,char* key,BOOL* result)
 		return NULL;
 	}
 	parent = node->parentNode;
-	if(parent->nextNode!=node && node->nextNode!=NULL) //node²»ÊÇÁ´±íÖÐµÄ½Úµã,µ«node´øÓÐÁ´±í
+	if(parent->nextNode!=node && node->nextNode!=NULL) //nodeä¸æ˜¯é“¾è¡¨ä¸­çš„èŠ‚ç‚¹,ä½†nodeå¸¦æœ‰é“¾è¡¨
 	{
 		if(parent->leftNode==node)
 		{
@@ -415,7 +415,7 @@ void* HashTreeRemove(HashTree* ht,char* key,BOOL* result)
 		free(node);
 		return v;
 	}
-	else if(parent->leftNode==node) //ÈônodeÊÇ×ó×ÓÊ÷
+	else if(parent->leftNode==node) //è‹¥nodeæ˜¯å·¦å­æ ‘
 	{
 		if(node->rightNode==NULL)
 		{
@@ -434,7 +434,7 @@ void* HashTreeRemove(HashTree* ht,char* key,BOOL* result)
 		free(node);
 		return v;
 	}
-	else if(parent->rightNode==node) //ÈônodeÊÇÓÒ×ÓÊ÷
+	else if(parent->rightNode==node) //è‹¥nodeæ˜¯å³å­æ ‘
 	{
 		if(node->leftNode==NULL)
 		{

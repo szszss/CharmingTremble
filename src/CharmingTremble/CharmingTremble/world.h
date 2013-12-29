@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "game.h"
 #include "collection.h"
 #include "entity.h"
@@ -10,7 +10,7 @@ struct implWorld
 	EntityPlayer *player;
 	long seed;
 	unsigned long tick;
-	unsigned long long score; //¾¡¹ÜÍæµ½40ÒÚ·ÖÓĞĞ©²»Ì«¿ÉÄÜ,µ«»¹ÊÇ¶à¶àÒæÉÆ°É!±ğÔÚºõÄÇ4byteµÄÄÚ´æÁË.
+	unsigned long long score; //å°½ç®¡ç©åˆ°40äº¿åˆ†æœ‰äº›ä¸å¤ªå¯èƒ½,ä½†è¿˜æ˜¯å¤šå¤šç›Šå–„å§!åˆ«åœ¨ä¹é‚£4byteçš„å†…å­˜äº†.
 	LinkedList *blockList;
 	LinkedList *powerupList;
 	LinkedList *operateQueue;

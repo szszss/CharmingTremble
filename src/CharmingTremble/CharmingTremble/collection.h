@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "game.h"
 #include "util.h"
 
@@ -46,7 +46,7 @@ struct implHashTreeNode{
 	_HashTreeNode *parentNode;
 	_HashTreeNode *leftNode;
 	_HashTreeNode *rightNode;
-	_HashTreeNode *nextNode; //µ±·¢ÉúHash³åÍ»Ê±,½Úµã¾Í»á±ä³ÉÒ»¸öÁ´±í
+	_HashTreeNode *nextNode; //å½“å‘ç”ŸHashå†²çªæ—¶,èŠ‚ç‚¹å°±ä¼šå˜æˆä¸€ä¸ªé“¾è¡¨
 };
 
 struct implHashTree{

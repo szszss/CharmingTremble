@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "game.h"
 #include <stdio.h>
 
@@ -35,7 +35,7 @@ struct implLogger
 	int baseLength;
 };
 
-// Logger²ÉÓÃµ¥ÀıÄ£Ê½,³ÌĞòÖĞÖ»ÄÜ´æÔÚÒ»¸öLogger
+// Loggeré‡‡ç”¨å•ä¾‹æ¨¡å¼,ç¨‹åºä¸­åªèƒ½å­˜åœ¨ä¸€ä¸ªLogger
 void LoggerCreate(BOOL logInFile,char* fileName,enum LoggerMode mode,int level,char* format);
 int LoggerDebug(char* text,...);
 //int LoggerDebugln(char* text);
@@ -49,7 +49,7 @@ int LoggerFatal(char* text,...);
 //int LoggerFatalln(char* text);
 void LoggerClose();
 
-/*StringBuilderÊÇÒ»¸öÄÜ½«¶à¸ö×Ö·û´®Æ´½ÓÎªÒ»¸öµÄ¹¤¾ß.*/
+/*StringBuilderæ˜¯ä¸€ä¸ªèƒ½å°†å¤šä¸ªå­—ç¬¦ä¸²æ‹¼æ¥ä¸ºä¸€ä¸ªçš„å·¥å…·.*/
 #define STRING_BUILDER_MAX_BUFFER 24
 
 typedef struct implStringBuilder{
@@ -57,13 +57,13 @@ typedef struct implStringBuilder{
 	int bufferPointer;
 };
 
-/*´´½¨Ò»¸öĞÂµÄStringBuilder.*/
+/*åˆ›å»ºä¸€ä¸ªæ–°çš„StringBuilder.*/
 StringBuilder* SBCreate();
-/*ÏòStringBuilderºó×·¼ÓÒ»¸ö×Ö·û´®.*/
+/*å‘StringBuilderåè¿½åŠ ä¸€ä¸ªå­—ç¬¦ä¸².*/
 StringBuilder* SBAppend(StringBuilder *sb,char* str);
-/*Éú³ÉÒ»¸öĞÂ×Ö·û´®,Éú³ÉÍê±Ïºó»á×Ô¶¯Ïú»ÙStringBuilder.*/
+/*ç”Ÿæˆä¸€ä¸ªæ–°å­—ç¬¦ä¸²,ç”Ÿæˆå®Œæ¯•åä¼šè‡ªåŠ¨é”€æ¯StringBuilder.*/
 char* SBBuild(StringBuilder *sb);
-/*ÊÖ¶¯Ïú»ÙÒ»¸öStringBuilder,ÒÑBuildµÄStringBuilderÎŞĞè´Ë²½Öè.*/
+/*æ‰‹åŠ¨é”€æ¯ä¸€ä¸ªStringBuilder,å·²Buildçš„StringBuilderæ— éœ€æ­¤æ­¥éª¤.*/
 void SBDestroy(StringBuilder *sb);
 
 #define MAX_STRING_HASH 1000000000
@@ -73,4 +73,5 @@ void SBDestroy(StringBuilder *sb);
 Hash HashCode(char* string);
 
 unsigned long* UTF8ToUTF32(char* utf8Text);
+wchar_t* UTF8ToANSI(char* utf8Text);
 //char* UTF32ToUTF8(unsigned long* utf32Text);

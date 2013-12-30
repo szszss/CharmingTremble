@@ -38,6 +38,8 @@ typedef struct implEntityPlayer         EntityPlayer;       //玩家实体
 
 typedef struct implTexture              Texture;            //纹理
 typedef struct implTextTexture          TextTexture;        //文字纹理
+
+typedef struct implGuiScreen            GuiScreen;          //界面
 typedef struct implGuiButton            GuiButton;          //按钮
 
 typedef struct implOSM                  OSM;                //操作状态机
@@ -51,9 +53,10 @@ typedef struct implMTRandomGen          MTRandomGen;        //梅森旋转算法
 typedef struct implLogger               Logger;             //日志记录器
 typedef struct implStringBuilder        StringBuilder;      //字符串构造器
 
+/*
 enum ScreenState {
 	SS_MAINMENU,
-	SS_GAME};
+	SS_GAME};*/
 
 enum WorldType {
 	TYPE_UNKNOWN=-1,
@@ -70,6 +73,12 @@ enum WorldDifficulty {
 	DIFF_LUNATIC=4,
 	DIFF_EXTRA=5,
 	DIFF_PHANTOM=6};
+
+enum WorldState{
+	WSTATE_STOP,
+	WSTATE_RUN,
+	WSTATE_GAMEOVERING,
+	WSTATE_GAMEOVERED};
 
 //崩溃掉游戏...并抛出原因
 void GameCrash(char* cause);

@@ -15,6 +15,7 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 	world->tick=0;
 	world->type=type;
 	world->difficulty=difficulty;
+	world->state=WSTATE_STOP;
 	world->upSpeed = 0.075f;
 	world->powerupList=LinkedListCreate();
 	world->blockList=LinkedListCreate();
@@ -29,11 +30,13 @@ void WorldStart(World* world)
 	EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,0,-1,5);
 	LinkedListAdd(world->blockList,block);
 	world->player = (EntityPlayer*)EntityPlayerCreate(world,0,0);
+	world->state=WSTATE_RUN;
 	LoggerInfo("World started");
 }
 
 void WorldEnd(World* world)
 {
+	world->state=WSTATE_STOP;
 	LoggerInfo("World ended");
 }
 
@@ -70,20 +73,27 @@ void UpdateEntityList(World* world,LinkedList *list)
 
 void WorldUpdate( World* world )
 {
-	if(world->tick%20==0)
+	if(world->state==WSTATE_GAMEOVERING)
 	{
-		int count = MTNextInt(world->randomGen,0,1);
-		if(count==1)
-		{
-			int x = MTNextInt(world->randomGen,0,19);
-			int length = MTNextInt(world->randomGen,3,10);
-			EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,(float)x-9.5f,-16,5);
-			LinkedListAdd(world->blockList,block);
-		}
+		WorldGameOver(world);
 	}
-	UpdateEntityList(world,world->blockList);
-	UpdateEntityList(world,world->powerupList);
-	((Entity*)(world->player))->prototype->update(world->player,world);
+	if(world->state==WSTATE_RUN)
+	{
+		if(world->tick%30==0)
+		{
+			int count = MTNextInt(world->randomGen,0,1);
+			if(count==1)
+			{
+				int x = MTNextInt(world->randomGen,0,19);
+				int length = MTNextInt(world->randomGen,4,10);
+				EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,(float)x-9.5f,-16,length);
+				LinkedListAdd(world->blockList,block);
+			}
+		}
+		UpdateEntityList(world,world->blockList);
+		UpdateEntityList(world,world->powerupList);
+		((Entity*)(world->player))->prototype->update(world->player,world);
+	}
 	world->tick++;
 }
 
@@ -102,7 +112,20 @@ void RenderEntityList(World* world,LinkedList *list)
 
 void WorldRender( World* world )
 {
-	RenderEntityList(world,world->blockList);
-	RenderEntityList(world,world->powerupList);
-	((Entity*)(world->player))->prototype->render(world->player,world);
+	if(world->state==WSTATE_RUN)
+	{
+		RenderEntityList(world,world->blockList);
+		RenderEntityList(world,world->powerupList);
+		((Entity*)(world->player))->prototype->render(world->player,world);
+	}
+	else if(world->state==WSTATE_GAMEOVERED)
+	{
+		//RE_DrawTextStatic("很遗憾,你♂死♂了",0.2,0.5,0.5);
+		//RE_DrawTextStatic("hehe很遗憾,你♂死♂了",0.2,0.5,0.5);
+	}
+}
+
+void WorldGameOver( World* world )
+{
+	world->state=WSTATE_GAMEOVERED;
 }

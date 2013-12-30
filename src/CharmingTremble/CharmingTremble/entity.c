@@ -38,7 +38,7 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	player->jump=FALSE;
 	player->landed=FALSE;
 	player->vSpeed=0;
-	player->life=5;
+	player->life=1;
 	return player;
 }
 
@@ -88,10 +88,18 @@ int EntityPlayerUpdate(void* entity,World* world)
 	if(player->left||hTempMove<0)
 	{
 		player->base.posX-=0.2f;
+		if(player->base.posX<-10.0f)
+		{
+			player->base.posX=-10.0f;
+		}
 	}
 	else if(player->right||hTempMove>0)
 	{
 		player->base.posX+=0.2f;
+		if(player->base.posX>10.0f)
+		{
+			player->base.posX=10.0f;
+		}
 	}
 	if(player->landed)
 	{
@@ -111,6 +119,7 @@ int EntityPlayerUpdate(void* entity,World* world)
 	if(player->base.posY<-15)
 	{
 		player->vSpeed = 1.5f;
+		EntityPlayerLifeChange(entity,world,-1);
 	}
 	if(player->vSpeed<-1.0f)
 	{
@@ -138,6 +147,18 @@ void EntityPlayerRender(void* entity,World* world)
 	RE_BindTexture(NULL);
 	glPopMatrix();
 }
+
+
+int EntityPlayerLifeChange( void* entity,World* world,int value )
+{
+	EntityPlayer *player = (EntityPlayer*)entity;
+	player->life+=value;
+	if(player->life<=0)
+	{
+		world->state=WSTATE_GAMEOVERING;
+	}
+}
+
 
 void* EntityBlockCreate(World *world,float x,float y, ...)
 {
@@ -177,14 +198,20 @@ int EntityBlockUpdate(void* entity,World* world)
 			world->player->base.posY = block->base.posY+0.5f;
 			//world->player->vSpeed=0;
 		}
-		else if(world->player->base.posY > block->base.posY-2.5f)
+		else if(world->player->base.posY > block->base.posY-2.5f && (world->player->base.posY <= block->base.posY-0.7f))
 		{
-			//LoggerDebug("hehe");
-			/*world->player->base.posY = block->base.posY-2.5f;
-			if(world->player->base.posX>(widthLeft-0.4f))
-				world->player->base.posX = widthLeft-0.4f;
-			else if(world->player->base.posX<(widthRight+0.4f))
-				world->player->base.posX = widthRight+0.4f;*/
+			if(world->player->vSpeed>0)
+			{
+				world->player->base.posY = block->base.posY-2.5f;
+				world->player->vSpeed=0;
+			}
+			else
+			{
+				if(world->player->base.posX>block->base.posX)
+					world->player->base.posX=widthRight+0.3f;
+				else
+					world->player->base.posX=widthLeft-0.3f;
+			}
 		}
 	}
 	return 0;

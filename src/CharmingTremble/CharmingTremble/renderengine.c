@@ -5,6 +5,7 @@
 #include "oswork.h"
 #include "png.h"
 #include "math.h"
+#include "gui.h"
 #include "collection.h"
 #include "ft2build.h"
 #include FT_FREETYPE_H
@@ -182,16 +183,7 @@ int RE_Render()
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	if(texture==NULL)
-		texture=RM_GetTexture("image/bgGame.png");
-	RE_BindTexture(texture);
-	//glRotatef(tickTime,1,1,1);
-	RE_DrawRectWithTexture(0,0,1,1,0,0,800.0/1024.0,600.0/1024.0);
-	RE_BindTexture(NULL);
-
-	//RE_DrawText(L"H",0,0,0);
-	//RE_DrawTextStatic("屌炸天♂aaaaaaaaaaaaaaaaaaaaaa",0.01,0.01,0.3);
-
+	Gui_Render(theWorld);
 	RE_CheckGLError(RE_STAGE_AFTER_DRAW_2D);
 	glPopMatrix();
 	glFlush();

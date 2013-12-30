@@ -17,6 +17,7 @@ struct implWorld
 	float upSpeed;
 	enum WorldType type;
 	enum WorldDifficulty difficulty;
+	enum WorldState state;
 	MTRandomGen *randomGen;
 };
 
@@ -26,3 +27,4 @@ void WorldEnd(World* world);
 void WorldUpdate(World* world);
 void WorldRender(World* world);
 void WorldDestory(World* world);
+void WorldGameOver(World* world);

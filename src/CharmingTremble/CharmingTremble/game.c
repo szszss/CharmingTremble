@@ -9,6 +9,7 @@
 #include "input.h"
 #include "math.h"
 #include "oswork.h"
+#include "gui.h"
 
 void GameClose();
 void GameMainLoop();
@@ -44,6 +45,7 @@ void GameMainLoop()
 	LoggerInfo("Starting game main loop");
 	theWorld = WorldNewGame("szszss",1000,TYPE_NORMAL,DIFF_NORMAL);
 	WorldStart(theWorld);
+	Gui_Open(GuiScreenGame);
 	IN_Clear();
 	while(shouldRun)
 	{
@@ -76,6 +78,7 @@ int Update()
 	{
 		WorldUpdate(theWorld);
 	}
+	Gui_Update(theWorld);
 	return 0;
 }
 
@@ -114,6 +117,7 @@ void GameCrash(char* cause)
 void GameClose()
 {
 	LoggerInfo("Closing game");
+	Gui_Close();
 	if(theWorld!=NULL)
 		WorldDestory(theWorld);
 	IN_DestroyInput();

@@ -43,6 +43,7 @@ void EntityDestroy(void* entity,World* world,int cause);
 void* EntityPlayerCreate(World* world,float x,float y,...);
 int EntityPlayerUpdate(void* entity,World* world);
 void EntityPlayerRender(void* entity,World* world);
+int EntityPlayerLifeChange(void* entity,World* world,int value);
 void* EntityBlockCreate(World* world,float x,float y,...);
 int EntityBlockUpdate(void* entity,World* world);
 void EntityBlockRender(void* entity,World* world);

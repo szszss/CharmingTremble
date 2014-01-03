@@ -1,12 +1,19 @@
-#include "oswork.h"
+Ôªø#include "oswork.h"
 #include "memory.h"
+#include "util.h"
+#include <locale.h>
 
 #ifdef OS_WINDOWS
+#pragma execution_character_set("utf-8")
+//#pragma setlocale("english_england.UTF-8")
+#include <Windows.h>
+
 BOOL FindFirstFileExists(LPCTSTR lpPath, DWORD dwFilter);
 BOOL FilePathExists(LPCTSTR lpPath);
 
 char* OS_GetFontPath( char* fontName,char* backupFontName )
 {
+	//char hehe[] = _MSC_VER;
 	char* fontFolder = getenv("WINDIR");
 	int length = strlen(fontName)+strlen(fontFolder)+8;
 	char* fontPath = (char*)malloc_s(length*sizeof(char));
@@ -24,15 +31,11 @@ char* OS_GetFontPath( char* fontName,char* backupFontName )
 		{
 			return OS_GetFontPath(backupFontName,NULL);
 		}
-		else
-		{
-			GameCrash(0); //TODO:“ª∏ˆ¥ÌŒÛ¬Î
-		}
 	}
 	return NULL;
 }
 
-//Author:±˘µ„«‡Õ‹
+//Author:ÂÜ∞ÁÇπÈùíËõô
 BOOL FindFirstFileExists(LPCTSTR lpPath, DWORD dwFilter)
 {
 	WIN32_FIND_DATA fd;
@@ -43,7 +46,7 @@ BOOL FindFirstFileExists(LPCTSTR lpPath, DWORD dwFilter)
 	return RetValue;
 }
 
-//Author:±˘µ„«‡Õ‹
+//Author:ÂÜ∞ÁÇπÈùíËõô
 BOOL FilePathExists(LPCTSTR lpPath)
 {
 	return FindFirstFileExists(lpPath, FALSE);
@@ -51,6 +54,26 @@ BOOL FilePathExists(LPCTSTR lpPath)
 
 BOOL OS_PathExist(char* path)
 {
-	return FilePathExists(path);
+	unsigned long *buffer = UTF8ToUTF32(path);
+	BOOL b = FilePathExists(path);
+	free_s(buffer);
+	return b;
 }
+
+long long OS_GetMsTime()
+{
+	return GetTickCount();
+}
+
+BOOL OS_UTF8ToANSI_DO( char* utf8Text, wchar_t* destAnsiText, size_t maxLength )
+{
+	return (mbstowcs(destAnsiText,utf8Text,maxLength)==maxLength)?FALSE:TRUE;
+}
+
+void OS_Init()
+{
+	setlocale(LC_ALL,".65001");
+}
+
+
 #endif

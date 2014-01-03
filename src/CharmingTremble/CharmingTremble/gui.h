@@ -1,4 +1,16 @@
+﻿#pragma once
 #include "game.h"
+#include "world.h"
+#include "collection.h"
+
+typedef struct implGuiScreen
+{
+	void (*update)(GuiScreen*,World*);
+	void (*render)(GuiScreen*,World*);
+	void (*close)(GuiScreen*);
+	LinkedList *controlList;
+	GuiScreen *parent;
+};
 
 struct implGuiButton
 {
@@ -10,4 +22,13 @@ struct implGuiButton
 	int flags;
 };
 
-void GuiUpdate();
+void Gui_Update(World* world);
+void Gui_Render(World* world);
+void Gui_Destroy();
+void Gui_Open(GuiScreen* (*constructor)());
+BOOL Gui_Close();
+
+GuiScreen* GuiScreenGame();
+void GuiScreenGameUpdate(GuiScreen* screen,World* world);
+void GuiScreenGameRender(GuiScreen* screen,World* world);
+void GuiScreenGameClose(GuiScreen* screen);

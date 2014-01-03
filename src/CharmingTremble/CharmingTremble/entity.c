@@ -1,4 +1,4 @@
-#include "entity.h"
+﻿#include "entity.h"
 #include "memory.h"
 #include "renderengine.h"
 #include "resourcemanager.h"
@@ -6,6 +6,7 @@
 #include "util.h"
 #include "input.h"
 #include <stdarg.h>
+#include <stdlib.h>
 
 extern unsigned long long tickTime;
 
@@ -27,7 +28,9 @@ void EntityDestroy(void* entity,World* world,int cause)
 
 void* EntityPlayerCreate(World *world,float x,float y, ...)
 {
+	va_list args;
 	EntityPlayer *player = (EntityPlayer*)malloc_s(sizeof(EntityPlayer));
+	va_start(args,y);
 	player->base.posX=x;
 	player->base.posY=y;
 	player->base.prototype=&entityPrototypePlayer;
@@ -37,8 +40,12 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	player->down=FALSE;
 	player->jump=FALSE;
 	player->landed=FALSE;
+	player->maxDepthLevel=0;
 	player->vSpeed=0;
 	player->life=5;
+	player->score=0;
+	player->id=va_arg(args, byte);
+	va_end(args); 
 	return player;
 }
 
@@ -87,11 +94,19 @@ int EntityPlayerUpdate(void* entity,World* world)
 	}
 	if(player->left||hTempMove<0)
 	{
-		player->base.posX-=0.4f;
+		player->base.posX-=0.2f;
+		if(player->base.posX<-10.0f)
+		{
+			player->base.posX=-10.0f;
+		}
 	}
 	else if(player->right||hTempMove>0)
 	{
-		player->base.posX+=0.4f;
+		player->base.posX+=0.2f;
+		if(player->base.posX>10.0f)
+		{
+			player->base.posX=10.0f;
+		}
 	}
 	if(player->landed)
 	{
@@ -99,22 +114,24 @@ int EntityPlayerUpdate(void* entity,World* world)
 		player->vSpeed=0.0f;
 		if(player->jump)
 		{
-			player->vSpeed+=1.0f;
+			player->vSpeed+=0.8f;
 		}
 	}
 	else
 	{
 		player->base.posY+=player->vSpeed;
-		player->vSpeed-=0.1f;
+		player->vSpeed-=0.05f;
 		
 	}
 	if(player->base.posY<-15)
 	{
-		player->vSpeed = 2;
+		if(player->vSpeed<0)
+			EntityPlayerLifeChange(entity,world,-1);
+		player->vSpeed = 1.5f;
 	}
-	if(player->vSpeed<-2.0f)
+	if(player->vSpeed<-1.0f)
 	{
-		player->vSpeed=-2.0f;
+		player->vSpeed=-1.0f;
 	}
 	player->landed=FALSE;
 	return 0;
@@ -139,18 +156,30 @@ void EntityPlayerRender(void* entity,World* world)
 	glPopMatrix();
 }
 
+
+int EntityPlayerLifeChange( void* entity,World* world,int value )
+{
+	EntityPlayer *player = (EntityPlayer*)entity;
+	player->life+=value;
+	if(player->life<=0)
+	{
+		world->state=WSTATE_GAMEOVERING;
+	}
+}
+
+
 void* EntityBlockCreate(World *world,float x,float y, ...)
 {
 	va_list args;
-	int width;
 	EntityBlock *block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
 	va_start(args,y);
 	block->base.posX=x;
 	block->base.posY=y;
 	block->base.prototype=&entityPrototypeBlock;
 	block->texture=RM_GetTexture("image/brick.png");
-	width=va_arg(args, int);
-	block->width=width;
+	block->stepped=0;
+	block->width=va_arg(args, byte);
+	block->depthLevel=va_arg(args, unsigned long);
 	va_end(args); 
 	return block;
 }
@@ -167,26 +196,49 @@ int EntityBlockUpdate(void* entity,World* world)
 	temp=(float)(block->width)/2;
 	widthLeft=block->base.posX-temp;
 	widthRight=block->base.posX+temp;
-	if(world->player->base.posX>(widthLeft-0.0f) && world->player->base.posX<(widthRight+0.0f))
+	FOREACH_PLAYERS(player)
+	if(player->base.posX>(widthLeft-0.2f) && player->base.posX<(widthRight+0.2f))
 	{
 		//LoggerDebug("yaya");
-		if((world->player->base.posY > block->base.posY-1.0f) && (world->player->base.posY - block->base.posY < 0.7f) && (world->player->vSpeed<=0))
+		if((player->base.posY > block->base.posY-1.0f) && (player->base.posY - block->base.posY < 0.7f) && (player->vSpeed<=0))
 		{
 			//LoggerDebug("yyyyy");
-			world->player->landed=TRUE;
-			world->player->base.posY = block->base.posY+0.5f;
+			player->landed=TRUE;
+			player->base.posY = block->base.posY+0.5f;
+			if((unsigned long)(block->stepped&(1<<player->id))==0)//如果玩家第一次站上
+			{
+				long i = block->depthLevel - player->maxDepthLevel;
+				if(i>0)
+				{
+					player->score += ( i - 1 )*10;
+					player->maxDepthLevel=block->depthLevel;
+				}
+				else if(i<0)
+				{
+					player->score += -i*10;
+				}
+				player->score += 10;
+				block->stepped |= (1<<player->id);
+			}
 			//world->player->vSpeed=0;
 		}
-		else if(world->player->base.posY > block->base.posY-2.5f)
+		else if(player->base.posY > block->base.posY-2.5f && (player->base.posY <= block->base.posY-0.7f))
 		{
-			//LoggerDebug("hehe");
-			/*world->player->base.posY = block->base.posY-2.5f;
-			if(world->player->base.posX>(widthLeft-0.4f))
-				world->player->base.posX = widthLeft-0.4f;
-			else if(world->player->base.posX<(widthRight+0.4f))
-				world->player->base.posX = widthRight+0.4f;*/
+			if(player->vSpeed>0)
+			{
+				player->base.posY = block->base.posY-2.5f;
+				player->vSpeed=0;
+			}
+			else
+			{
+				if(player->base.posX>block->base.posX)
+					player->base.posX=widthRight+0.3f;
+				else
+					player->base.posX=widthLeft-0.3f;
+			}
 		}
 	}
+	FOREACH_END
 	return 0;
 }
 
@@ -194,7 +246,7 @@ void EntityBlockRender(void* entity,World* world)
 {
 	EntityBlock *block = (EntityBlock*)entity;
 	int width = block->width;
-	float fWidth = (float)width/2.0f;;
+	//float fWidth = (float)width/2.0f;;
 	if(width<1)
 	{
 		LoggerDebug("A block has a wrong width:%d It won't be rendered",width);

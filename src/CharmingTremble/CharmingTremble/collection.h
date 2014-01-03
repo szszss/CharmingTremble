@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "game.h"
 #include "util.h"
 
@@ -37,10 +37,7 @@ LinkedListIterator* LinkedListGetIterator(LinkedList* linkedList);
 void* LinkedListIteratorGetNext(LinkedListIterator* iterator);
 BOOL LinkedListIteratorHasNext(LinkedListIterator* iterator);
 void* LinkedListIteratorDeleteCurrent(LinkedListIterator* iterator);
-
-#define MAX_STRING_HASH 1000000000
-#define DEFAULT_HBST_ROOT 500000000
-#define MAX_HBST_DEPTH 1023
+void LinkedListIteratorPullUpCurrent(LinkedListIterator* iterator);
 
 struct implHashTreeNode{
 	unsigned long hash;
@@ -49,7 +46,7 @@ struct implHashTreeNode{
 	_HashTreeNode *parentNode;
 	_HashTreeNode *leftNode;
 	_HashTreeNode *rightNode;
-	_HashTreeNode *nextNode; //µ±·¢ÉúHash³åÍ»Ê±,½Úµã¾Í»á±ä³ÉÒ»¸öÁ´±í
+	_HashTreeNode *nextNode; //å½“å‘ç”ŸHashå†²çªæ—¶,èŠ‚ç‚¹å°±ä¼šå˜æˆä¸€ä¸ªé“¾è¡¨
 };
 
 struct implHashTree{

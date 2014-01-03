@@ -1,5 +1,6 @@
-#include "collection.h"
+ï»¿#include "collection.h"
 #include "memory.h"
+#include "util.h"
 #include <string.h>
 
 LinkedList* LinkedListCreate()
@@ -46,7 +47,7 @@ unsigned long LinkedListInsert(LinkedList* linkedList,unsigned long index,void* 
 }
 void* LinkedListGet(LinkedList* linkedList,unsigned long index,BOOL* result)
 {
-	//XXX:ÆäÊµ¿ÉÒÔÅÐ¶ÏindexÓëlengthµÄ¹ØÏµ,È»ºóÑ¡ÔñÐÔµØ×öµ¹ÐòËÑË÷.
+	//XXX:å…¶å®žå¯ä»¥åˆ¤æ–­indexä¸Žlengthçš„å…³ç³»,ç„¶åŽé€‰æ‹©æ€§åœ°åšå€’åºæœç´¢.
 	_LinkedListNode *node;
 	if(index>=linkedList->length)
 	{
@@ -55,7 +56,7 @@ void* LinkedListGet(LinkedList* linkedList,unsigned long index,BOOL* result)
 		return NULL;
 	}
 	node=linkedList->headNode;
-	for(;index>=0;index--) //ÒòÎªheadNodeÊÇ²»Ê¹ÓÃµÄ,ËùÒÔÊÇ>=
+	for(;index>=0;index--) //å› ä¸ºheadNodeæ˜¯ä¸ä½¿ç”¨çš„,æ‰€ä»¥æ˜¯>=
 	{
 		node=node->next;
 	}
@@ -151,7 +152,10 @@ void* LinkedListPoll(LinkedList* linkedList,BOOL* result)
 unsigned long LinkedListDestory(LinkedList* linkedList,int (*callbackFunction)(void* ))
 {
 	_LinkedListNode *deleted = NULL;
-	_LinkedListNode *node = linkedList->headNode->next;
+	_LinkedListNode *node;
+	if(linkedList==NULL)
+		return 0;
+	node = linkedList->headNode->next;
 	while(node!=NULL)
 	{
 		if(callbackFunction(node->value))
@@ -199,10 +203,27 @@ void* LinkedListIteratorDeleteCurrent(LinkedListIterator* iterator)
 	return LinkedListRemoveNode(iterator->host,iterator->currentNode);
 }
 
-typedef unsigned long Hash;
+void LinkedListIteratorPullUpCurrent( LinkedListIterator* iterator )
+{
+	_LinkedListNode *node = iterator->currentNode;
+	if(iterator->host->lastNode==node)
+	{
+		return;
+	}
+	iterator->currentNode=iterator->nextNode;
+	iterator->nextNode=iterator->currentNode==NULL?NULL:iterator->currentNode->next;
+	node->last->next=iterator->currentNode;
+	if(iterator->currentNode!=NULL)
+	{
+		iterator->currentNode->last=node->last;
+	}
+	node->next=iterator->host->headNode->next;
+	node->next->last=node;
+	iterator->host->headNode->next=node;
+	node->last=iterator->host->headNode;
+}
 
 _HashTreeNode* HashTreeNodeCreate(_HashTreeNode* parent,char* name,Hash hashCode,void* data);
-Hash HashCode(char* string);
 
 HashTree* HashTreeCreate()
 {
@@ -237,7 +258,7 @@ BOOL _HashTreeInsert(_HashTreeNode* inserted,_HashTreeNode* inserting)
 			}
 			curNode=curNode->rightNode;
 		}
-		//ÎÒ¼ÙÉèÔÚ¶þ´Î²åÈëÊ±²»´æÔÚHashÅö×²ÏÖÏó
+		//æˆ‘å‡è®¾åœ¨äºŒæ¬¡æ’å…¥æ—¶ä¸å­˜åœ¨Hashç¢°æ’žçŽ°è±¡
 	}
 	return TRUE;
 }
@@ -375,7 +396,7 @@ void* HashTreeRemove(HashTree* ht,char* key,BOOL* result)
 		return NULL;
 	}
 	parent = node->parentNode;
-	if(parent->nextNode!=node && node->nextNode!=NULL) //node²»ÊÇÁ´±íÖÐµÄ½Úµã,µ«node´øÓÐÁ´±í
+	if(parent->nextNode!=node && node->nextNode!=NULL) //nodeä¸æ˜¯é“¾è¡¨ä¸­çš„èŠ‚ç‚¹,ä½†nodeå¸¦æœ‰é“¾è¡¨
 	{
 		if(parent->leftNode==node)
 		{
@@ -394,7 +415,7 @@ void* HashTreeRemove(HashTree* ht,char* key,BOOL* result)
 		free(node);
 		return v;
 	}
-	else if(parent->leftNode==node) //ÈônodeÊÇ×ó×ÓÊ÷
+	else if(parent->leftNode==node) //è‹¥nodeæ˜¯å·¦å­æ ‘
 	{
 		if(node->rightNode==NULL)
 		{
@@ -413,7 +434,7 @@ void* HashTreeRemove(HashTree* ht,char* key,BOOL* result)
 		free(node);
 		return v;
 	}
-	else if(parent->rightNode==node) //ÈônodeÊÇÓÒ×ÓÊ÷
+	else if(parent->rightNode==node) //è‹¥nodeæ˜¯å³å­æ ‘
 	{
 		if(node->leftNode==NULL)
 		{
@@ -480,7 +501,10 @@ BOOL _HashTreeNodeDestroy(_HashTreeNode* node,void (*callbackFunction)(void* ),B
 }
 BOOL HashTreeDestroy(HashTree* ht,void (*callbackFunction)(void* ))
 {
-	BOOL result = _HashTreeNodeDestroy(ht->rootNode,callbackFunction,TRUE);
+	BOOL result;
+	if(ht==NULL)
+		return TRUE;
+	result = _HashTreeNodeDestroy(ht->rootNode,callbackFunction,TRUE);
 	if(result == TRUE)
 		free(ht);
 	return result;
@@ -497,15 +521,4 @@ _HashTreeNode* HashTreeNodeCreate(_HashTreeNode* parent,char* name,Hash hashCode
 	node->nextNode=NULL;
 	node->value=data;
 	return node;
-}
-Hash HashCode(char* string)
-{
-	static unsigned long seed = 131;
-	unsigned long hash = 0;
-	while (*string)  
-	{  
-		hash = hash * seed + (*string++);  
-	}  
-	hash &= 0x7FFFFFFF;
-	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
 }

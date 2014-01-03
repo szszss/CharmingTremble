@@ -1,10 +1,11 @@
-#include "util.h"
+ï»¿#include "util.h"
+#include "oswork.h"
 #include "memory.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
-//Ã·É­Ðý×ªËã·¨Ëæ»úÊý·¢ÉúÆ÷
+//æ¢…æ£®æ—‹è½¬ç®—æ³•éšæœºæ•°å‘ç”Ÿå™¨
 
 MTRandomGen* MTCreate(long seed)
 {
@@ -86,7 +87,7 @@ void LoggerCreate(BOOL logInFile,char* fileName,enum LoggerMode mode,int level,c
 			logger.fileAvailable=FALSE;
 			return;
 		}
-		//¼ì²éÈÕÖ¾ÎÄ¼þÊÇ·ñ´ò¿ª³É¹¦
+		//æ£€æŸ¥æ—¥å¿—æ–‡ä»¶æ˜¯å¦æ‰“å¼€æˆåŠŸ
 		if(logger.loggerFile == NULL)
 		{
 			logger.fileAvailable=FALSE;
@@ -153,11 +154,12 @@ int LoggerError(char* text,...)
 int LoggerFatal(char* text,...)
 {
 	va_list args;
+	int result = 0;
 	va_start(args, text);
 	if(logger.level&LOGGER_LEVEL_FATAL)
-		return LoggerOutput("Fatal",text,args);
+		result = LoggerOutput("Fatal",text,args);
 	va_end(args);
-	return 0;
+	return result;
 }
 //int LoggerFatalln(char* text);
 void LoggerClose()
@@ -204,4 +206,106 @@ char* SBBuild( StringBuilder *sb )
 void SBDestroy(StringBuilder *sb)
 {
 	free_s(sb);
+}
+
+Hash HashCode(char* string)
+{
+	static unsigned long seed = 131;
+	unsigned long hash = 0;
+	while (*string)  
+	{  
+		hash = hash * seed + (*string++);  
+	}  
+	hash &= 0x7FFFFFFF;
+	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
+}
+
+static const char BINARY_10000000 = 0x80;
+static const char BINARY_11000000 = 0xC0;
+static const char BINARY_11100000 = 0xE0;
+static const char BINARY_11110000 = 0xF0;
+static const char BINARY_00011111 = 0x1F;
+static const char BINARY_00001111 = 0x0F;
+static const char BINARY_00000111 = 0x07;
+static const char BINARY_00111111 = 0x3F;
+
+unsigned long* UTF8ToUTF32( char* utf8Text )
+{
+	unsigned long *buffer;
+	unsigned long *utf32Text;
+	long sourceLength = strlen(utf8Text);
+	char c8;
+	unsigned long c32; 
+	long i,j;
+	buffer = (unsigned long *)malloc_s((sourceLength+1)*sizeof(unsigned long));
+	for(i=0,j=0;j<sourceLength;i++,j++)
+	{
+		c32=0;
+		c8=utf8Text[j];
+		if(c8>0)
+		{
+			c32=c8;
+		}
+		else
+		{
+			int count;
+			if((char)(c8&BINARY_11100000)==BINARY_11100000)
+				count=2;
+			else if((char)(c8&BINARY_11000000)==BINARY_11000000)
+				count=1;
+			else if((char)(c8&BINARY_11110000)==BINARY_11110000)
+				count=3;
+			else
+			{
+				count=0;
+				LoggerWarn("An unknown utf8 character was met when UTF8ToUTF32:%d",(int)c8);
+			}
+			switch(count)
+			{
+			case 3:
+				c32+=(c8&BINARY_00000111)<<18;
+				break;
+			case 2:
+				c32+=(c8&BINARY_00001111)<<12;
+				break;
+			case 1:
+				c32+=(c8&BINARY_00011111)<<6;
+				break;
+			default:
+				c32=0x25A1;
+				break;
+			}
+			switch(count)
+			{
+			case 3:
+				c8=utf8Text[++j];
+				c32+=(c8&BINARY_00111111)<<12;
+			case 2:
+				c8=utf8Text[++j];
+				c32+=(c8&BINARY_00111111)<<6;
+			case 1:
+				c8=utf8Text[++j];
+				c32+=(c8&BINARY_00111111);
+				break;
+			}
+		}
+		buffer[i]=c32;
+	}
+	buffer[i]=0;
+	utf32Text=(unsigned long*)malloc_s((i+1)*sizeof(unsigned long));
+	memcpy(utf32Text,buffer,(i+1)*sizeof(unsigned long));
+	free_s(buffer);
+	return utf32Text;
+}
+
+wchar_t* UTF8ToANSI( char* utf8Text )
+{
+	unsigned long length = strlen(utf8Text);
+	wchar_t* ansiText = (wchar_t*)malloc_s((length+2)*sizeof(wchar_t));
+	memset(ansiText,0,(length+2)*sizeof(wchar_t));
+	if(OS_UTF8ToANSI_DO(utf8Text,ansiText,length))
+	{
+		LoggerWarn("A possible overflow happened when UTF8ToANSI:%s",utf8Text);
+	}
+	return ansiText;
 }

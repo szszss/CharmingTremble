@@ -1,4 +1,4 @@
-#include "resourcemanager.h"
+ï»¿#include "resourcemanager.h"
 #include "collection.h"
 #include "memory.h"
 #include "png.h"
@@ -21,7 +21,7 @@ void RM_DestroyTexture(void* p)
 {
 	Texture *texture = (Texture*)p;
 	RE_UnloadTexture(texture->id);
-	free_s(texture); //yeah, just¡áso¡áeasy
+	free_s(texture); //yeah, justâ™‚soâ™‚easy
 }
 
 int RM_Close()
@@ -97,7 +97,7 @@ Texture* RM_LoadPNG( char* imageFile )
 		fclose(file);
 		return NULL;
 	}
-	png = png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL); //XXX:Èç¹û¿ÉÒÔµÄ»°Ó¦¸ÃÊ¹ÓÃ_2°æ±¾,¼´ÔÊĞí×Ô¶¨ÒåÄÚ´æº¯ÊıµÄ°æ±¾.
+	png = png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL); //XXX:å¦‚æœå¯ä»¥çš„è¯åº”è¯¥ä½¿ç”¨_2ç‰ˆæœ¬,å³å…è®¸è‡ªå®šä¹‰å†…å­˜å‡½æ•°çš„ç‰ˆæœ¬.
 	if(png==NULL)
 	{
 		LoggerWarn("Failed to load a png texture. Can't create png reading struct");

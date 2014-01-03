@@ -1,13 +1,14 @@
-﻿#pragma once
+﻿#pragma execution_character_set("utf-8")
+#pragma once
 #define WINDOW_TITLE "Charming Tremble"
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
-#define WINDOW_FRAME 1000/200
+#define WINDOW_FRAME 1000/60
 
 #if defined(_WIN32) || defined(WIN32)
 	#define OS_WINDOWS
 	#define FONT_DEFAULT "msyh.ttf"
-	#define FONT_BACKUP "simsun.ttf"
+	#define FONT_BACKUP "simsun.ttc"
 #elif defined(__LINUX) || defined(__LINUX__) || defined(LINUX)
 	#define OS_LINUX
 #elif defined(__APPLE__) || defined(__MACOSX__)
@@ -26,7 +27,8 @@
 	#endif
 #endif
 
-typedef unsigned char ImageData;
+typedef unsigned char byte;
+typedef unsigned long Hash;
 
 typedef struct implWorld                World;              //游戏世界
 typedef struct implEntityPrototype      EntityPrototype;    //实体原型
@@ -35,6 +37,9 @@ typedef struct implEntityBlock          EntityBlock;        //砖块实体
 typedef struct implEntityPlayer         EntityPlayer;       //玩家实体
 
 typedef struct implTexture              Texture;            //纹理
+typedef struct implTextTexture          TextTexture;        //文字纹理
+
+typedef struct implGuiScreen            GuiScreen;          //界面
 typedef struct implGuiButton            GuiButton;          //按钮
 
 typedef struct implOSM                  OSM;                //操作状态机
@@ -48,9 +53,10 @@ typedef struct implMTRandomGen          MTRandomGen;        //梅森旋转算法
 typedef struct implLogger               Logger;             //日志记录器
 typedef struct implStringBuilder        StringBuilder;      //字符串构造器
 
+/*
 enum ScreenState {
 	SS_MAINMENU,
-	SS_GAME};
+	SS_GAME};*/
 
 enum WorldType {
 	TYPE_UNKNOWN=-1,
@@ -67,6 +73,12 @@ enum WorldDifficulty {
 	DIFF_LUNATIC=4,
 	DIFF_EXTRA=5,
 	DIFF_PHANTOM=6};
+
+enum WorldState{
+	WSTATE_STOP,
+	WSTATE_RUN,
+	WSTATE_GAMEOVERING,
+	WSTATE_GAMEOVERED};
 
 //崩溃掉游戏...并抛出原因
 void GameCrash(char* cause);

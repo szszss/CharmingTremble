@@ -1,8 +1,9 @@
-//#define RE_INIT_SUCCESS_BUT_LOW_VERSION 1
+ï»¿//#define RE_INIT_SUCCESS_BUT_LOW_VERSION 1
 //#define RE_INIT_GL_NO_SUPPORT 10
 //#define RE_INIT_JUST_ERROR 255
 #pragma once
 #include "game.h"
+#include <wchar.h>
 
 #define RE_STAGE_BEFORE_DRAW_3D "Before drawing 3D"
 #define RE_STAGE_AFTER_DRAW_3D "After drawn 3D"
@@ -23,30 +24,40 @@ struct implTexture{
 	unsigned int id;
 };
 
-/*³õÊ¼»¯´°¿Ú,OPENGLºÍÍ¼ĞÎ×ÊÔ´.*/
+struct implTextTexture{
+	Texture texture;
+	Hash hash;
+	char *text;
+	float width;
+	BOOL isStatic;
+	int life;
+};
+
+/*åˆå§‹åŒ–çª—å£,OPENGLå’Œå›¾å½¢èµ„æº.*/
 int RE_InitWindow(int width,int height);
-/*Ïú»Ù´°¿ÚºÍOpenGL,²¢ÊÍ·ÅÍ¼ĞÎ×ÊÔ´*/
+/*é”€æ¯çª—å£å’ŒOpenGL,å¹¶é‡Šæ”¾å›¾å½¢èµ„æº*/
 void RE_DestroyWindow();
-/*µ÷Õû´°¿Ú*/
+/*è°ƒæ•´çª—å£*/
 void RE_Reshape(int width,int height);
-/*äÖ~È¾~!*/
+/*æ¸²~æŸ“~!*/
 int RE_Render();
-/*¿ìËÙäÖÈ¾Ò»×é×©¿é.*/
+/*å¿«é€Ÿæ¸²æŸ“ä¸€ç»„ç –å—.*/
 void RE_RenderCubeQuick(int count);
-/*äÖÈ¾Ò»¸ölx,ly,lzÎª×óÉÏ¶¥µã,rx,ry,rzÎªÓÒÏÂ¶¥µãµÄ×©¿é.*/
+/*æ¸²æŸ“ä¸€ä¸ªlx,ly,lzä¸ºå·¦ä¸Šé¡¶ç‚¹,rx,ry,rzä¸ºå³ä¸‹é¡¶ç‚¹çš„ç –å—.*/
 void RE_RenderCube(float lx,float ly,float lz,float rx,float ry,float rz);
-/*»æÖÆÒ»¸ö´øÓĞÎÆÀíµÄ¾ØĞÎ.
-x,yÎª¾ØĞÎ×óÉÏ½Ç×ø±ê
-width,heightÎª¾ØĞÎ¿í¸ß
-u,vÎªÎÆÀíµÄuv
-uw,vhÎªÎÆÀíÖĞ½ØÈ¡µÄÃæ»ı*/
+/*ç»˜åˆ¶ä¸€ä¸ªå¸¦æœ‰çº¹ç†çš„çŸ©å½¢.
+x,yä¸ºçŸ©å½¢å·¦ä¸Šè§’åæ ‡
+width,heightä¸ºçŸ©å½¢å®½é«˜
+u,vä¸ºçº¹ç†çš„uv
+uw,vhä¸ºçº¹ç†ä¸­æˆªå–çš„é¢ç§¯*/
 void RE_DrawRectWithTexture(float x,float y,float width,float height,float u,float v,float uw,float vh);
-/*°ó¶¨Ò»¸öÎÆÀí,ÈôÎªNULL,ÔòÎªÈ¡Ïû°ó¶¨.·µ»ØÖµÎª±»°ó¶¨µÄÎÆÀíµÄÎÆÀí¶ÔÏóID (²ÎÊıÎªNULLÔòÎª0)*/
+/*ç»‘å®šä¸€ä¸ªçº¹ç†,è‹¥ä¸ºNULL,åˆ™ä¸ºå–æ¶ˆç»‘å®š.è¿”å›å€¼ä¸ºè¢«ç»‘å®šçš„çº¹ç†çš„çº¹ç†å¯¹è±¡ID (å‚æ•°ä¸ºNULLåˆ™ä¸º0)*/
 int RE_BindTexture(Texture* texture);
-/*´¦ÀíÒ»¸öÕıÔÚÔØÈëµÄÎÆÀí*/
-unsigned int RE_ProcessRawTexture(ImageData* rawData,int color,int format,unsigned long width,unsigned long height);
-/*Ğ¶ÔØÒ»¸öÎÆÀí¶ÔÏó,×¢ÒâËüÖ»¸ºÔğĞ¶ÔØOpenGLÄÚ²¿µÄÎÆÀí¶ÔÏó,ÎÆÀí(Texture)µÄÊÍ·ÅÈÔĞèÒªÊÖ¶¯Íê³É*/
+/*å¤„ç†ä¸€ä¸ªæ­£åœ¨è½½å…¥çš„çº¹ç†*/
+unsigned int RE_ProcessRawTexture(byte* rawData,int color,int format,unsigned long width,unsigned long height);
+/*å¸è½½ä¸€ä¸ªçº¹ç†å¯¹è±¡,æ³¨æ„å®ƒåªè´Ÿè´£å¸è½½OpenGLå†…éƒ¨çš„çº¹ç†å¯¹è±¡,çº¹ç†(Texture)çš„é‡Šæ”¾ä»éœ€è¦æ‰‹åŠ¨å®Œæˆ*/
 void RE_UnloadTexture(unsigned int texture);
-/*¼ì²éOpenGLÄÚ²¿´íÎó,×¢ÒâÖ»ÓĞÔÚDebugÄ£Ê½ÏÂ²Å»á¼ì²éÃ¿Ò»¸ö´íÎó,ReleaseÄ£Ê½ÏÂÖ»ÓĞRendering½×¶Î²Å»á½øĞĞ¼ì²é.ÕâÊÇÒòÎªglGetErrorµÄ¿ªÏúºÜ´ó.*/
+/*æ£€æŸ¥OpenGLå†…éƒ¨é”™è¯¯,æ³¨æ„åªæœ‰åœ¨Debugæ¨¡å¼ä¸‹æ‰ä¼šæ£€æŸ¥æ¯ä¸€ä¸ªé”™è¯¯,Releaseæ¨¡å¼ä¸‹åªæœ‰Renderingé˜¶æ®µæ‰ä¼šè¿›è¡Œæ£€æŸ¥.è¿™æ˜¯å› ä¸ºglGetErrorçš„å¼€é”€å¾ˆå¤§.*/
 int RE_CheckGLError(char* stage);
-void RE_DrawText(char* text,float x,float y,float width);
+void RE_DrawTextStatic(char* text,float x,float y,float width);
+void RE_DrawTextVolatile(char* text,float x,float y,float width);

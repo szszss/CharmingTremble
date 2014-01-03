@@ -1,4 +1,4 @@
-#include "input.h"
+﻿#include "input.h"
 
 OSM mainOSM;
 int keyState = 0;

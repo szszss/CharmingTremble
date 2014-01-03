@@ -1,4 +1,4 @@
-#include "game.h"
+Ôªø#include "game.h"
 #include <stdlib.h>
 #include "renderengine.h"
 #include "resourcemanager.h"
@@ -7,6 +7,9 @@
 #include "entity.h"
 #include "world.h"
 #include "input.h"
+#include "math.h"
+#include "oswork.h"
+#include "gui.h"
 
 void GameClose();
 void GameMainLoop();
@@ -20,11 +23,13 @@ World* theWorld = NULL;
 int main(int argc, char** argv)
 {
 	//int result;
+	OS_Init();
 	LoggerCreate(TRUE,"log.txt",LOGGER_APPEND,LOGGER_LEVEL_ALL,LOGGER_FORMAT_C);
 	LoggerInfo("Initializing game");
 	if(SDL_Init(SDL_INIT_EVERYTHING))
 		GameCrash("Initialized SDL failed");
 	LoggerInfo("SDL initialized");
+	MathInit();
 	RM_InitResourceManager();
 	RE_InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT);
 	IN_InitInput();
@@ -36,16 +41,22 @@ int main(int argc, char** argv)
 
 void GameMainLoop()
 {
+	long long lastTime=OS_GetMsTime();
 	LoggerInfo("Starting game main loop");
 	theWorld = WorldNewGame("szszss",1000,TYPE_NORMAL,DIFF_NORMAL);
 	WorldStart(theWorld);
+	Gui_Open(GuiScreenGame);
 	IN_Clear();
 	while(shouldRun)
 	{
-		if(Update() || RE_Render())
-			break;
-		SDL_Delay(WINDOW_FRAME);
-		tickTime++;
+		if(OS_GetMsTime()-lastTime>WINDOW_FRAME)
+		{
+			if(Update() || RE_Render())
+				break;
+			lastTime=OS_GetMsTime();
+			tickTime++;
+		}
+		SDL_Delay(1);
 	}
 	LoggerInfo("Game main loop broke.");
 	WorldEnd(theWorld);
@@ -55,7 +66,7 @@ void GameMainLoop()
 
 int Update()
 {
-	//¥¶¿Ì ¬º˛
+	//Â§ÑÁêÜ‰∫ã‰ª∂
 	SDL_Event sdlEvent;
 	while(SDL_PollEvent(&sdlEvent))
 	{
@@ -67,6 +78,7 @@ int Update()
 	{
 		WorldUpdate(theWorld);
 	}
+	Gui_Update(theWorld);
 	return 0;
 }
 
@@ -99,11 +111,13 @@ void GameCrash(char* cause)
 {
 	LoggerFatal(cause);
 	GameClose();
+	exit(EXIT_FAILURE);
 }
 
 void GameClose()
 {
 	LoggerInfo("Closing game");
+	Gui_Close();
 	if(theWorld!=NULL)
 		WorldDestory(theWorld);
 	IN_DestroyInput();

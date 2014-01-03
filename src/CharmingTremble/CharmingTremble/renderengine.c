@@ -264,7 +264,7 @@ void RE_RenderCube( float lx,float ly,float lz,float rx,float ry,float rz )
 	glEnd();
 }
 
-unsigned int RE_ProcessRawTexture( ImageData* rawData,int color,int format,unsigned long width,unsigned long height )
+unsigned int RE_ProcessRawTexture( byte* rawData,int color,int format,unsigned long width,unsigned long height )
 {
 	GLuint texture;
 	RE_CheckGLError(RE_STAGE_BEFORE_PROCESS_TEXTURE);
@@ -446,11 +446,12 @@ void RE_DrawTextStatic( char* text,float x,float y,float width )
 	TextTexture *texture = NULL;
 	for(iterator=LinkedListGetIterator(textTextureCache);LinkedListIteratorHasNext(iterator);)
 	{
-		texture = (TextTexture*)LinkedListIteratorGetNext(iterator);
-		if(texture->text==text && MathFloatEqual(texture->width,width))
+		TextTexture *temp = (TextTexture*)LinkedListIteratorGetNext(iterator);
+		if(temp->text==text && MathFloatEqual(temp->width,width))
 		{
 			LinkedListIteratorPullUpCurrent(iterator);
-			texture->life=100;
+			temp->life=100;
+			texture=temp;
 			break;
 		}
 	}
@@ -459,6 +460,7 @@ void RE_DrawTextStatic( char* text,float x,float y,float width )
 		texture = RE_ProcessTextTexture(text,width);
 		texture->width = width;
 		texture->text=text;
+		texture->hash=0;
 		texture->isStatic=TRUE;
 		texture->life=100;
 		LinkedListOffer(textTextureCache,texture);
@@ -474,11 +476,12 @@ void RE_DrawTextVolatile( char* text,float x,float y,float width )
 	Hash hash = HashCode(text);
 	for(iterator=LinkedListGetIterator(textTextureCache);LinkedListIteratorHasNext(iterator);)
 	{
-		texture = (TextTexture*)LinkedListIteratorGetNext(iterator);
-		if(hash==texture->hash && MathFloatEqual(texture->width,width) && strcmp(text,texture->text)==0)
+		TextTexture *temp = (TextTexture*)LinkedListIteratorGetNext(iterator);
+		if(hash==temp->hash && MathFloatEqual(temp->width,width) && strcmp(text,temp->text)==0)
 		{
 			LinkedListIteratorPullUpCurrent(iterator);
-			texture->life=100;
+			temp->life=100;
+			texture=temp;
 			break;
 		}
 	}

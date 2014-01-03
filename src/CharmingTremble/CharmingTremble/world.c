@@ -8,11 +8,17 @@ extern EntityPrototype entityPrototypeBlock;
 World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDifficulty difficulty )
 {
 	World *world = (World*)malloc_s(sizeof(World));
+	int i;
 	world->playerName=playerName;
-	world->player = NULL;
-	world->score=0;
+	for(i=0;i<32;i++)
+	{
+		world->players[i] = NULL;
+	}
+	//world->score=0;
 	world->seed=seed;
 	world->tick=0;
+	world->depth=0;
+	world->depthLevel=0;
 	world->type=type;
 	world->difficulty=difficulty;
 	world->state=WSTATE_STOP;
@@ -27,9 +33,10 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 
 void WorldStart(World* world)
 {
-	EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,0,-1,5);
+	EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,0,-14,5,0);
+	block->stepped=0xFFFFFFFF;
 	LinkedListAdd(world->blockList,block);
-	world->player = (EntityPlayer*)EntityPlayerCreate(world,0,0);
+	world->players[0] = (EntityPlayer*)EntityPlayerCreate(world,0,-13,0);
 	world->state=WSTATE_RUN;
 	LoggerInfo("World started");
 }
@@ -46,7 +53,9 @@ void WorldDestory(World* world)
 	LoggerInfo("Destroying world");
 	LinkedListDestory(world->blockList,CallbackDestroyEntity);
 	LinkedListDestory(world->powerupList,CallbackDestroyEntity);
-	CallbackDestroyEntity((void*)world->player);
+	FOREACH_PLAYERS(player)
+	CallbackDestroyEntity(player);
+	FOREACH_END
 	MTDestroy(world->randomGen);
 	free_s(world);
 	LoggerInfo("World destroyed");
@@ -79,21 +88,24 @@ void WorldUpdate( World* world )
 	}
 	if(world->state==WSTATE_RUN)
 	{
-		if(world->tick%30==0)
+		if(world->depth>5.0)
 		{
 			int count = MTNextInt(world->randomGen,0,1);
-			if(count==1)
-			{
-				int x = MTNextInt(world->randomGen,0,19);
-				int length = MTNextInt(world->randomGen,4,10);
-				EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,(float)x-9.5f,-16,length);
-				LinkedListAdd(world->blockList,block);
-			}
+			int x = MTNextInt(world->randomGen,0,19);
+			byte length = (byte)MTNextInt(world->randomGen,4,10);
+			EntityBlock *block = NULL;
+			world->depth-=5.0;
+			world->depthLevel++;
+			block = (EntityBlock*)entityPrototypeBlock.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+			LinkedListAdd(world->blockList,block);
 		}
 		UpdateEntityList(world,world->blockList);
 		UpdateEntityList(world,world->powerupList);
-		((Entity*)(world->player))->prototype->update(world->player,world);
+		FOREACH_PLAYERS(player)
+		((Entity*)(player))->prototype->update(player,world);
+		FOREACH_END
 	}
+	world->depth+=world->upSpeed;
 	world->tick++;
 }
 
@@ -116,7 +128,9 @@ void WorldRender( World* world )
 	{
 		RenderEntityList(world,world->blockList);
 		RenderEntityList(world,world->powerupList);
-		((Entity*)(world->player))->prototype->render(world->player,world);
+		FOREACH_PLAYERS(player)
+		((Entity*)(player))->prototype->render(player,world);
+		FOREACH_END
 	}
 	else if(world->state==WSTATE_GAMEOVERED)
 	{

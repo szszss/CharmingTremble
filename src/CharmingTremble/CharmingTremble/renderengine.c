@@ -312,7 +312,9 @@ void RE_DrawRectWithTexture( float x,float y,float width,float height,float u,fl
 	width*=2.0f;
 	height*=2.0f;
 	glBegin(GL_QUADS);
+		//glColor3f(1,1,1);
 		glTexCoord2f(u+uw,v-vh);glVertex3f(x+width,y-height,0);
+		//glColor3f(0,0,1);
 		glTexCoord2f(u+uw,v);glVertex3f(x+width, y,0);
 		glTexCoord2f(u,v);glVertex3f(x,y,0);
 		glTexCoord2f(u,v-vh);glVertex3f(x,y-height,0);
@@ -539,11 +541,15 @@ TextTexture* RE_ProcessTextTexture( char* utf8Text,float maxWidth )
 			usedLine++;
 		}
 		k=0;
+		headX+=slot->bitmap_left;
+		headY+=lineHeight-slot->bitmap_top-3;
 		for(j=0; j <h;j++) {
 			for(i=0; i < w; i++){
 				bytes[headX+i+(headY+j)*maxX]= i>=slot->bitmap.width||j>=slot->bitmap.rows?0:slot->bitmap.buffer[k++];
 			}
 		}
+		headX-=slot->bitmap_left;
+		headY-=lineHeight-slot->bitmap_top-3;
 		headX+=slot->bitmap.width+2;
 		count++;
 		//break;

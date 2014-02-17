@@ -2,8 +2,10 @@
 #include "memory.h"
 #include "resourcemanager.h"
 
-extern EntityPrototype entityPrototypePlayer;
-extern EntityPrototype entityPrototypeBlock;
+extern EntityPrototype entityPlayerPrototype;
+extern EntityPrototype entityBlockPrototype;
+extern EntityBlockPrototype entityBlockBrickPrototype;
+extern EntityBlockPrototype entityBlockMossyPrototype;
 
 World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDifficulty difficulty )
 {
@@ -33,7 +35,7 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 
 void WorldStart(World* world)
 {
-	EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,0,-14,5,0);
+	EntityBlock* block = (EntityBlock*)entityBlockPrototype.create(world,0,-14,5,0);
 	block->stepped=0xFFFFFFFF;
 	LinkedListAdd(world->blockList,block);
 	world->players[0] = (EntityPlayer*)EntityPlayerCreate(world,0,-13,0);
@@ -92,11 +94,24 @@ void WorldUpdate( World* world )
 		{
 			int count = MTNextInt(world->randomGen,0,1);
 			int x = MTNextInt(world->randomGen,0,19);
+			int blockType = MTNextInt(world->randomGen,0,4);
 			byte length = (byte)MTNextInt(world->randomGen,4,10);
 			EntityBlock *block = NULL;
 			world->depth-=5.0;
 			world->depthLevel++;
-			block = (EntityBlock*)entityPrototypeBlock.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+			switch(blockType)
+			{
+			case 0:
+				block = (EntityBlock*)entityBlockBrickPrototype.base.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+				break;
+			case 1:
+			case 2:
+				block = (EntityBlock*)entityBlockMossyPrototype.base.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+				break;
+			default:
+				block = (EntityBlock*)entityBlockPrototype.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+				break;
+			}
 			LinkedListAdd(world->blockList,block);
 		}
 		UpdateEntityList(world,world->blockList);

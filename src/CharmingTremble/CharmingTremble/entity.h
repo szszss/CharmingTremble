@@ -6,6 +6,7 @@
 #define FOREACH_PLAYERS(player) {EntityPlayer *player = NULL;int _loopVar_=0;while((player=world->players[_loopVar_++])!=NULL){
 #define FOREACH_END     }}
 
+//--------Entity
 struct implEntityPrototype 
 {
 	void* (*create)(World*,float,float,...);
@@ -13,23 +14,38 @@ struct implEntityPrototype
 	void (*render)(void*,World*);
 	void (*destroy)(void*,World*,int);
 };
-
 struct implEntity 
 {
 	EntityPrototype* prototype;
 	float posX;
 	float posY;
 };
-
+//--------Entity--EntityBlock
+struct implEntityBlockPrototype 
+{
+	EntityPrototype base;
+	void (*onStep)(void*,World*,EntityPlayer*,BOOL,int);
+	void (*onLeave)(void*,World*,EntityPlayer*);
+	//void* (*onBreak)(World*,EntityPlayer*);
+};
 struct implEntityBlock 
 {
 	Entity base;
-	byte width;
 	long depthLevel;
 	unsigned long stepped;
 	Texture *texture;
+	byte width;
 };
-
+//--------Entity--EntityBlock-EntityBlockBonus
+struct implEntityBlockBonus 
+{
+	EntityBlock base;
+	byte bonusType; //Believe me, this byte even DOSEN'T take space. Do you know why?
+	int bonusInNumber;
+	float bounsInFactor;
+	void* bounsPointer;
+};
+//--------Entity--EntityPlayer
 struct implEntityPlayer
 {
 	Entity base;
@@ -53,10 +69,18 @@ void EntityDestroy(void* entity,World* world,int cause);
 void* EntityPlayerCreate(World* world,float x,float y,...);
 int EntityPlayerUpdate(void* entity,World* world);
 void EntityPlayerRender(void* entity,World* world);
-int EntityPlayerLifeChange(void* entity,World* world,int value);
+void EntityPlayerLifeChange(void* entity,World* world,int value);
 /*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/
 void* EntityBlockCreate(World* world,float x,float y,...);
 int EntityBlockUpdate(void* entity,World* world);
 void EntityBlockRender(void* entity,World* world);
+void EntityBlockOnStep(void* entity,World* world,EntityPlayer* player,BOOL first,int last);
+void EntityBlockOnLeave(void* entity,World* world,EntityPlayer* player);
+/*额外分数砖块 使用附加值:bounsInFactor 分数加成系数 bonusInNumber 分数加值 bonusType 算法(0为加分=基准分*系数+加值 非0为加分=(基准分+加值)*系数)*/
+void EntityBlockOnStepMoreScore(void* entity,World* world,EntityPlayer* player,BOOL first,int last);
+/*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/
+void* EntityBlockBrickCreate(World* world,float x,float y,...);
+/*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/
+void* EntityBlockMossyCreate(World* world,float x,float y,...);
 
 int CallbackDestroyEntity(void* entity);

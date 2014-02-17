@@ -89,6 +89,7 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="attribute.c" />
     <ClCompile Include="collection.c" />
     <ClCompile Include="entity.c" />
     <ClCompile Include="game.c" />
@@ -103,6 +104,7 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
     <ClCompile Include="world.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="attribute.h" />
     <ClInclude Include="collection.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="game.h" />

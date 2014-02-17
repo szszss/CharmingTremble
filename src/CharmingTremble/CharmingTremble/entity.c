@@ -10,8 +10,11 @@
 
 extern unsigned long long tickTime;
 
-EntityPrototype entityPrototypePlayer;
-EntityPrototype entityPrototypeBlock;
+EntityPrototype entityPlayerPrototype;
+EntityBlockPrototype entityBlockPrototype;
+EntityBlockPrototype entityBlockBrickPrototype;
+EntityBlockPrototype entityBlockMossyPrototype;
+
 extern World *theWorld;
 
 int CallbackDestroyEntity( void* entity )
@@ -33,7 +36,7 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	va_start(args,y);
 	player->base.posX=x;
 	player->base.posY=y;
-	player->base.prototype=&entityPrototypePlayer;
+	player->base.prototype=&entityPlayerPrototype;
 	player->left=FALSE;
 	player->right=FALSE;
 	player->up=FALSE;
@@ -156,8 +159,7 @@ void EntityPlayerRender(void* entity,World* world)
 	glPopMatrix();
 }
 
-
-int EntityPlayerLifeChange( void* entity,World* world,int value )
+void EntityPlayerLifeChange( void* entity,World* world,int value )
 {
 	EntityPlayer *player = (EntityPlayer*)entity;
 	player->life+=value;
@@ -167,19 +169,51 @@ int EntityPlayerLifeChange( void* entity,World* world,int value )
 	}
 }
 
+void EntityBlockCreate_Do(World *world,float x,float y,EntityBlock *block,va_list args,char *texture,EntityPrototype *prototype)
+{
+	block->base.posX=x;
+	block->base.posY=y;
+	block->base.prototype=prototype;
+	block->texture=RM_GetTexture(texture);
+	block->stepped=0;
+	block->width=va_arg(args, byte);
+	block->depthLevel=va_arg(args, unsigned long);
+}
 
 void* EntityBlockCreate(World *world,float x,float y, ...)
 {
 	va_list args;
 	EntityBlock *block = (EntityBlock*)malloc_s(sizeof(EntityBlock));
 	va_start(args,y);
-	block->base.posX=x;
-	block->base.posY=y;
-	block->base.prototype=&entityPrototypeBlock;
-	block->texture=RM_GetTexture("image/brick.png");
-	block->stepped=0;
-	block->width=va_arg(args, byte);
-	block->depthLevel=va_arg(args, unsigned long);
+	EntityBlockCreate_Do(world,x,y,block,args,"image/stone.png",&entityBlockPrototype);
+	va_end(args); 
+	return block;
+}
+
+void* EntityBlockBrickCreate( World* world,float x,float y,... )
+{
+	va_list args;
+	EntityBlock *block = (EntityBlock*)malloc_s(sizeof(EntityBlockBonus));
+	va_start(args,y);
+	EntityBlockCreate_Do(world,x,y,block,args,"image/brick.png",&entityBlockBrickPrototype);
+	((EntityBlockBonus*)block)->bonusType=0;
+	((EntityBlockBonus*)block)->bonusInNumber=0;
+	((EntityBlockBonus*)block)->bounsInFactor=2.0f;
+	((EntityBlockBonus*)block)->bounsPointer=NULL;
+	va_end(args); 
+	return block;
+}
+
+void* EntityBlockMossyCreate( World* world,float x,float y,... )
+{
+	va_list args;
+	EntityBlock *block = (EntityBlock*)malloc_s(sizeof(EntityBlockBonus));
+	va_start(args,y);
+	EntityBlockCreate_Do(world,x,y,block,args,"image/mossy.png",&entityBlockMossyPrototype);
+	((EntityBlockBonus*)block)->bonusType=0;
+	((EntityBlockBonus*)block)->bonusInNumber=0;
+	((EntityBlockBonus*)block)->bounsInFactor=2.0f;
+	((EntityBlockBonus*)block)->bounsPointer=NULL;
 	va_end(args); 
 	return block;
 }
@@ -202,23 +236,17 @@ int EntityBlockUpdate(void* entity,World* world)
 		//LoggerDebug("yaya");
 		if((player->base.posY > block->base.posY-1.0f) && (player->base.posY - block->base.posY < 0.7f) && (player->vSpeed<=0))
 		{
+			EntityBlockPrototype *prototype = block->base.prototype;
 			//LoggerDebug("yyyyy");
 			player->landed=TRUE;
 			player->base.posY = block->base.posY+0.5f;
 			if((unsigned long)(block->stepped&(1<<player->id))==0)//如果玩家第一次站上
 			{
-				long i = block->depthLevel - player->maxDepthLevel;
-				if(i>0)
-				{
-					player->score += ( i - 1 )*10;
-					player->maxDepthLevel=block->depthLevel;
-				}
-				else if(i<0)
-				{
-					player->score += -i*10;
-				}
-				player->score += 10;
-				block->stepped |= (1<<player->id);
+				prototype->onStep(entity,world,player,TRUE,0);
+			}
+			else
+			{
+				prototype->onStep(entity,world,player,FALSE,0); //TODO:正确的站立持续时间
 			}
 			//world->player->vSpeed=0;
 		}
@@ -261,16 +289,70 @@ void EntityBlockRender(void* entity,World* world)
 	glPopMatrix();
 }
 
+void EntityBlockOnStep( void* entity,World* world,EntityPlayer* player,BOOL first,int last )
+{
+	EntityBlock *block = (EntityBlock*)entity;
+	long i = block->depthLevel - player->maxDepthLevel;
+	if(first==TRUE)
+	{
+		if(i>0)
+		{
+			player->score += ( i - 1 )*10;
+			player->maxDepthLevel=block->depthLevel;
+		}
+		else if(i<0)
+		{
+			player->score += -i*10;
+		}
+		player->score += 10;
+		block->stepped |= (1<<player->id);
+	}
+}
+
+void EntityBlockOnLeave( void* entity,World* world,EntityPlayer* player )
+{
+	//Do nothing
+}
+
+void EntityBlockOnStepMoreScore( void* entity,World* world,EntityPlayer* player,BOOL first,int last )
+{
+	EntityBlockBonus* block = (EntityBlockBonus*)entity;
+	long long oldScore = player->score;
+	long long delta = 0;
+	EntityBlockOnStep(entity,world,player,first,last);
+	delta = player->score - oldScore;
+	if(delta!=0)
+	{
+		player->score -= delta;
+		if(block->bonusType==0)
+		{
+			player->score += (long long)(delta*block->bounsInFactor)+block->bonusInNumber;
+		}
+		else
+		{
+			player->score += (long long)(delta+block->bonusInNumber)*block->bounsInFactor;
+		}
+	}
+}
+
+
 int InitEntities()
 {
-	entityPrototypePlayer.create = EntityPlayerCreate;
-	entityPrototypePlayer.update = EntityPlayerUpdate;
-	entityPrototypePlayer.render = EntityPlayerRender;
-	entityPrototypePlayer.destroy = EntityDestroy;
-	entityPrototypeBlock.create = EntityBlockCreate;
-	entityPrototypeBlock.update = EntityBlockUpdate;
-	entityPrototypeBlock.render = EntityBlockRender;
-	entityPrototypeBlock.destroy = EntityDestroy;
+	entityPlayerPrototype.create = EntityPlayerCreate;
+	entityPlayerPrototype.update = EntityPlayerUpdate;
+	entityPlayerPrototype.render = EntityPlayerRender;
+	entityPlayerPrototype.destroy = EntityDestroy;
+	((EntityPrototype*)&entityBlockPrototype)->create = EntityBlockCreate;
+	((EntityPrototype*)&entityBlockPrototype)->update = EntityBlockUpdate;
+	((EntityPrototype*)&entityBlockPrototype)->render = EntityBlockRender;
+	((EntityPrototype*)&entityBlockPrototype)->destroy = EntityDestroy;
+					  entityBlockPrototype.onStep = EntityBlockOnStep;
+					  entityBlockPrototype.onLeave = EntityBlockOnLeave;
+	entityBlockBrickPrototype=entityBlockPrototype;
+	entityBlockBrickPrototype.base.create = EntityBlockBrickCreate;
+	entityBlockBrickPrototype.onStep = EntityBlockOnStepMoreScore;
+	entityBlockMossyPrototype=entityBlockPrototype;
+	entityBlockMossyPrototype.base.create = EntityBlockMossyCreate;
 	LoggerInfo("Entities initialized");
 	return 0;
 }

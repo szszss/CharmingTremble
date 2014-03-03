@@ -134,6 +134,7 @@ void RenderEntityList(World* world,LinkedList *list)
 		entity = LinkedListIteratorGetNext(iterator);
 		p = ((Entity*)entity)->prototype;
 		p->render(entity,world);
+		AttributeRender(world,(Entity*)entity);
 	}
 }
 
@@ -145,6 +146,7 @@ void WorldRender( World* world )
 		RenderEntityList(world,world->powerupList);
 		FOREACH_PLAYERS(player)
 		((Entity*)(player))->prototype->render(player,world);
+		AttributeRender(world,(Entity*)player);
 		FOREACH_END
 	}
 	else if(world->state==WSTATE_GAMEOVERED)

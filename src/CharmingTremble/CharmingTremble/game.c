@@ -5,6 +5,7 @@
 #include "SDL.h"
 #include "util.h"
 #include "entity.h"
+#include "attribute.h"
 #include "world.h"
 #include "input.h"
 #include "math.h"
@@ -34,6 +35,7 @@ int main(int argc, char** argv)
 	RE_InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT);
 	IN_InitInput();
 	InitEntities();
+	InitAttributes();
 	GameMainLoop();
 	GameClose();
 	return 0;

@@ -82,6 +82,8 @@ void EntityBlockOnStep(void* entity,World* world,EntityPlayer* player,BOOL first
 void EntityBlockOnLeave(void* entity,World* world,EntityPlayer* player);
 /*额外分数砖块 使用附加值:bounsInFactor 分数加成系数 bonusInNumber 分数加值 bonusType 算法(0为加分=基准分*系数+加值 非0为加分=(基准分+加值)*系数)*/
 void EntityBlockOnStepMoreScore(void* entity,World* world,EntityPlayer* player,BOOL first,int last);
+/*踩上去后减速*/
+void EntityBlockOnStepSlow(void* entity,World* world,EntityPlayer* player,BOOL first,int last);
 /*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/
 void* EntityBlockBrickCreate(World* world,float x,float y,...);
 /*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/

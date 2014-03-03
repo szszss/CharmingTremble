@@ -9,14 +9,14 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-extern unsigned long long tickTime;
-
 EntityPrototype entityPlayerPrototype;
 EntityBlockPrototype entityBlockPrototype;
 EntityBlockPrototype entityBlockBrickPrototype;
 EntityBlockPrototype entityBlockMossyPrototype;
 
+extern unsigned long long tickTime;
 extern World *theWorld;
+extern Attribute attributeMossySlow;
 
 int CallbackDestroyEntity( void* entity )
 {
@@ -68,6 +68,8 @@ int EntityPlayerUpdate(void* entity,World* world)
 	player->speedFactorX=1.0f;
 	player->speedFactorY=1.0f;
 
+	AttributeUpdate(world,(Entity*)entity);
+
 	//获取操作栈
 	while((operate=IN_GetOperate())>200)
 	{
@@ -107,22 +109,30 @@ int EntityPlayerUpdate(void* entity,World* world)
 			break;
 		}
 	}
+
 	if(player->left||hTempMove<0)
 	{
-		player->base.posX-=0.2f;
-		if(player->base.posX<-10.0f)
-		{
-			player->base.posX=-10.0f;
-		}
+		player->speedX = -0.2f;
 	}
 	else if(player->right||hTempMove>0)
 	{
-		player->base.posX+=0.2f;
-		if(player->base.posX>10.0f)
-		{
-			player->base.posX=10.0f;
-		}
+		player->speedX = 0.2f;
 	}
+	else
+	{
+		player->speedX = 0.0f;
+	}
+
+	player->base.posX+=(player->speedX * player->speedFactorX);
+	if(player->base.posX<-10.0f)
+	{
+		player->base.posX=-10.0f;
+	}
+	else if(player->base.posX>10.0f)
+	{
+		player->base.posX=10.0f;
+	}
+
 	if(player->landed)
 	{
 		//LoggerDebug("wwww");
@@ -240,6 +250,7 @@ int EntityBlockUpdate(void* entity,World* world)
 	{
 		return -1;
 	}
+	AttributeUpdate(world,(Entity*)entity);
 	temp=(float)(block->width)/2;
 	widthLeft=block->base.posX-temp;
 	widthRight=block->base.posX+temp;
@@ -348,6 +359,13 @@ void EntityBlockOnStepMoreScore( void* entity,World* world,EntityPlayer* player,
 	}
 }
 
+void EntityBlockOnStepSlow(void* entity,World* world,EntityPlayer* player,BOOL first,int last)
+{
+	EntityBlock* block = (EntityBlock*)entity;
+	EntityBlockOnStep(entity,world,player,first,last);
+	AttributeAddOrExtend(world,(Entity*)player,&attributeMossySlow);
+}
+
 
 int InitEntities()
 {
@@ -366,6 +384,7 @@ int InitEntities()
 	entityBlockBrickPrototype.onStep = EntityBlockOnStepMoreScore;
 	entityBlockMossyPrototype=entityBlockPrototype;
 	entityBlockMossyPrototype.base.create = EntityBlockMossyCreate;
+	entityBlockMossyPrototype.onStep = EntityBlockOnStepSlow;
 	LoggerInfo("Entities initialized");
 	return 0;
 }

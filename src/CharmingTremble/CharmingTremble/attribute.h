@@ -30,6 +30,9 @@ void InitAttributes();
 BOOL AttributeAddOnly(World *world,Entity *entity,Attribute *attribute);
 BOOL AttributeAddOrExtend(World *world,Entity *entity,Attribute *attribute);
 BOOL AttributeExtendOnly(World *world,Entity *entity,Attribute *attribute);
+AttributeInstance* AttributeGet(Entity *entity,Attribute *attribute);
+void AttributeUpdate(World *world,Entity *entity);
+int AttributeDestroyCallback(void *attributeInstance);
 
 static BOOL AttributeDefaultOnAdd(World *world,Entity *entity,long long *data);
 static BOOL AttributeDefaultOnExtend(World *world,Entity *entity,unsigned long life,unsigned long elapse,long long *data);

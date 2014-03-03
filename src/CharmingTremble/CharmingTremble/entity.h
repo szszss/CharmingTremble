@@ -17,6 +17,7 @@ struct implEntityPrototype
 struct implEntity 
 {
 	EntityPrototype* prototype;
+	LinkedList *attributeList;
 	float posX;
 	float posY;
 };
@@ -52,7 +53,10 @@ struct implEntityPlayer
 	byte id;
 	int life;
 	long long score; //尽管玩到40亿分有些不太可能,但还是多多益善吧!别在乎那4byte的内存了.
-	float vSpeed;
+	float speedX;
+	float speedY;
+	float speedFactorX;
+	float speedFactorY;
 	long maxDepthLevel;
 	BOOL left;
 	BOOL right;

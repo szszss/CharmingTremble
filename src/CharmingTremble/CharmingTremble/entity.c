@@ -5,6 +5,7 @@
 #include "SDL_opengl.h"
 #include "util.h"
 #include "input.h"
+#include "attribute.h"
 #include <stdarg.h>
 #include <stdlib.h>
 
@@ -26,6 +27,8 @@ int CallbackDestroyEntity( void* entity )
 
 void EntityDestroy(void* entity,World* world,int cause)
 {
+	Entity* ent = (Entity*)entity;
+	LinkedListDestory(ent->attributeList,AttributeDestroyCallback);
 	free_s(entity);
 }
 
@@ -36,6 +39,7 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	va_start(args,y);
 	player->base.posX=x;
 	player->base.posY=y;
+	player->base.attributeList=LinkedListCreate();
 	player->base.prototype=&entityPlayerPrototype;
 	player->left=FALSE;
 	player->right=FALSE;
@@ -44,7 +48,10 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	player->jump=FALSE;
 	player->landed=FALSE;
 	player->maxDepthLevel=0;
-	player->vSpeed=0;
+	player->speedX=0;
+	player->speedY=0;
+	player->speedFactorX=1.0f;
+	player->speedFactorY=1.0f;
 	player->life=5;
 	player->score=0;
 	player->id=va_arg(args, byte);
@@ -57,6 +64,11 @@ int EntityPlayerUpdate(void* entity,World* world)
 	unsigned char operate;
 	EntityPlayer *player = (EntityPlayer*)entity;
 	char hTempMove = 0;
+	//恢复参数
+	player->speedFactorX=1.0f;
+	player->speedFactorY=1.0f;
+
+	//获取操作栈
 	while((operate=IN_GetOperate())>200)
 	{
 		switch(operate)
@@ -114,27 +126,27 @@ int EntityPlayerUpdate(void* entity,World* world)
 	if(player->landed)
 	{
 		//LoggerDebug("wwww");
-		player->vSpeed=0.0f;
+		player->speedY=0.0f;
 		if(player->jump)
 		{
-			player->vSpeed+=0.8f;
+			player->speedY+=0.8f;
 		}
 	}
 	else
 	{
-		player->base.posY+=player->vSpeed;
-		player->vSpeed-=0.05f;
+		player->base.posY+=player->speedY;
+		player->speedY-=0.05f;
 		
 	}
 	if(player->base.posY<-15)
 	{
-		if(player->vSpeed<0)
+		if(player->speedY<0)
 			EntityPlayerLifeChange(entity,world,-1);
-		player->vSpeed = 1.5f;
+		player->speedY = 1.5f;
 	}
-	if(player->vSpeed<-1.0f)
+	if(player->speedY<-1.0f)
 	{
-		player->vSpeed=-1.0f;
+		player->speedY=-1.0f;
 	}
 	player->landed=FALSE;
 	return 0;
@@ -173,6 +185,7 @@ void EntityBlockCreate_Do(World *world,float x,float y,EntityBlock *block,va_lis
 {
 	block->base.posX=x;
 	block->base.posY=y;
+	block->base.attributeList=LinkedListCreate();
 	block->base.prototype=prototype;
 	block->texture=RM_GetTexture(texture);
 	block->stepped=0;
@@ -234,7 +247,7 @@ int EntityBlockUpdate(void* entity,World* world)
 	if(player->base.posX>(widthLeft-0.2f) && player->base.posX<(widthRight+0.2f))
 	{
 		//LoggerDebug("yaya");
-		if((player->base.posY > block->base.posY-1.0f) && (player->base.posY - block->base.posY < 0.7f) && (player->vSpeed<=0))
+		if((player->base.posY > block->base.posY-1.0f) && (player->base.posY - block->base.posY < 0.7f) && (player->speedY<=0))
 		{
 			EntityBlockPrototype *prototype = block->base.prototype;
 			//LoggerDebug("yyyyy");
@@ -252,10 +265,10 @@ int EntityBlockUpdate(void* entity,World* world)
 		}
 		else if(player->base.posY > block->base.posY-2.5f && (player->base.posY <= block->base.posY-0.7f))
 		{
-			if(player->vSpeed>0)
+			if(player->speedY>0)
 			{
 				player->base.posY = block->base.posY-2.5f;
-				player->vSpeed=0;
+				player->speedY=0;
 			}
 			else
 			{

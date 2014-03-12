@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "game.h"
 #include "world.h"
+#include "pmd.h"
 
 //#define FOREACH_PLAYERS FOREACH_PLAYERS(player)
 #define FOREACH_PLAYERS(player) {EntityPlayer *player = NULL;int _loopVar_=0;while((player=world->players[_loopVar_++])!=NULL){
@@ -64,6 +65,7 @@ struct implEntityPlayer
 	BOOL down;
 	BOOL jump;
 	BOOL landed;
+	PMD_Model *model;
 };
 
 int InitEntities();

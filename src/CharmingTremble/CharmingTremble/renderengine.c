@@ -3,7 +3,6 @@
 #include "game.h"
 #include "memory.h"
 #include "oswork.h"
-#include "png.h"
 #include "math.h"
 #include "gui.h"
 #include "collection.h"

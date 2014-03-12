@@ -43,6 +43,12 @@ typedef struct implEntityBlockBonus     EntityBlockBonus;   //带特殊加成的
 typedef struct implTexture              Texture;            //纹理
 typedef struct implTextTexture          TextTexture;        //文字纹理
 
+typedef struct impl_PMD_Model           PMD_Model;          //PMD模型
+typedef struct impl_PMD_ModelInstance   PMD_ModelInstance;  //PMD模型实例
+typedef struct impl_PMD_Texture         PMD_Texture;        //纹理
+typedef struct impl_PMD_Material        PMD_Material;       //材质
+typedef struct impl_PMD_Vertex          PMD_Vertex;         //顶点
+
 typedef struct implGuiScreen            GuiScreen;          //界面
 typedef struct implGuiButton            GuiButton;          //按钮
 
@@ -83,6 +89,29 @@ enum WorldState{
 	WSTATE_RUN,
 	WSTATE_GAMEOVERING,
 	WSTATE_GAMEOVERED};
+
+enum PMD_Texture_Status {
+	PMD_Texture_Status_Init       = 1,  //The data of texture hasn't been loaded. Unavailable.
+	PMD_Texture_Status_Loading    = 2,  //The data of texture is been loading. Unavailable.
+	PMD_Texture_Status_Processing = 6,  //The data of texture has been loaded but its data hasn't been processed. Unavailable.
+	PMD_Texture_Status_Loaded     = 8,  //The texture has been loaded and processed and it's AVAILABLE now.
+	PMD_Texture_Status_Unload     = 16, //The texture has been unloaded. Unavailable.
+	PMD_Texture_Status_Error      = 0   //Something is wrong. PMD use "!status" to check error.
+};
+
+enum PMD_Texture_Type {
+	PMD_Texture_Type_2DTexture,
+	PMD_Texture_Type_Spa,
+	PMD_Texture_Type_Toon
+};
+
+enum PMD_Texture_Format {
+	PMD_Texture_Type_Bmp,
+	PMD_Texture_Type_Jpg,
+	PMD_Texture_Type_Png,
+	PMD_Texture_Type_Tga,
+	PMD_Texture_Type_Dds
+};
 
 //崩溃掉游戏...并抛出原因
 void GameCrash(char* cause);

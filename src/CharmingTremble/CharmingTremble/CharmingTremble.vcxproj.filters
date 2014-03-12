@@ -54,6 +54,12 @@
     <ClCompile Include="attribute.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="pmd.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stbi.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
@@ -93,6 +99,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="attribute.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="pmd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="stbi.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

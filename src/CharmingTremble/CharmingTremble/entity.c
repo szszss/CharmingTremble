@@ -54,6 +54,7 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	player->speedFactorY=1.0f;
 	player->life=5;
 	player->score=0;
+	player->model=PMD_LoadModel("model/koishi","koishi.pmd");
 	player->id=va_arg(args, byte);
 	va_end(args); 
 	return player;
@@ -165,19 +166,72 @@ int EntityPlayerUpdate(void* entity,World* world)
 void EntityPlayerRender(void* entity,World* world)
 {
 	static Texture *texture = NULL;
-	Entity *player = (Entity*)entity;
-	//float x = player->posX;
-	//float z = player->posY;
-	if(texture==NULL)
-	{
-		texture=RM_GetTexture("image/wood.png");
-	}
+	EntityPlayer *player = (EntityPlayer*)entity;
+	PMD_Model *model = player->model;
 	glPushMatrix();
-	//glTranslatef(-4,3+(float)(tickTime)/10.0f,0);
-	RE_BindTexture(texture);
-	glTranslatef(player->posX,player->posY,0);
-	RE_RenderCube(-0.5,2,-0.5,0.5,0,0.5);
-	RE_BindTexture(NULL);
+	//glTranslatef(player->base.posX,player->base.posY,0);
+	glTranslatef(0,-10,20);
+	if(model==NULL)
+	{
+		if(texture==NULL)
+		{
+			texture=RM_GetTexture("image/wood.png");
+		}
+		//glTranslatef(-4,3+(float)(tickTime)/10.0f,0);
+		RE_BindTexture(texture);
+		RE_RenderCube(-0.5,2,-0.5,0.5,0,0.5);
+		RE_BindTexture(NULL);
+		
+	}
+	else
+	{
+		static float scale = 1.0f;
+		int i,face;
+		long materialPointer=-1;
+		long materialThreshold=2000000000;
+		long vertex;
+		int indexCount = model->indexCount;
+		if(model->materialCount>0)
+		{
+			materialThreshold=0;		
+		}
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		//glEnable(GL_LIGHTING);
+		//glShadeModel(GL_SMOOTH);
+		glDisable(GL_CULL_FACE);
+		glScalef(scale,scale,scale);
+		glColor3f(1,1,1);
+		for(i=0,face=0;i<indexCount;i++,face++)
+		{
+			if(face==materialThreshold)
+			{
+				materialPointer++;
+				materialThreshold+=model->materials[materialPointer].faceAmount;
+				RE_BindTexture(model->materials[materialPointer].texture);
+				glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, &(model->materials[materialPointer].diffuseR));
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, &(model->materials[materialPointer].ambientR));
+				glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR, &(model->materials[materialPointer].specularR));
+				glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, model->materials[materialPointer].shininess);
+			}
+			glBegin(GL_TRIANGLES);
+				vertex = model->indexes[i+2];
+				glNormal3f(model->vertexs[vertex].nx, model->vertexs[vertex].ny, model->vertexs[vertex].nz);
+				glTexCoord2f(model->vertexs[vertex].u,model->vertexs[vertex].v);
+				glVertex3f(model->vertexs[vertex].x, model->vertexs[vertex].y, model->vertexs[vertex].z);
+				vertex = model->indexes[i+1];
+				glNormal3f(model->vertexs[vertex].nx, model->vertexs[vertex].ny, model->vertexs[vertex].nz);
+				glTexCoord2f(model->vertexs[vertex].u,model->vertexs[vertex].v);
+				glVertex3f(model->vertexs[vertex].x, model->vertexs[vertex].y, model->vertexs[vertex].z);
+				vertex = model->indexes[i];
+				glNormal3f(model->vertexs[vertex].nx, model->vertexs[vertex].ny, model->vertexs[vertex].nz);
+				glTexCoord2f(model->vertexs[vertex].u,model->vertexs[vertex].v);
+				glVertex3f(model->vertexs[vertex].x, model->vertexs[vertex].y, model->vertexs[vertex].z);
+				i+=2;
+			glEnd();
+		}
+		RE_BindTexture(NULL);
+		glPopAttrib();
+	}
 	glPopMatrix();
 }
 

@@ -39,6 +39,9 @@ BOOL LinkedListIteratorHasNext(LinkedListIterator* iterator);
 void* LinkedListIteratorDeleteCurrent(LinkedListIterator* iterator);
 void LinkedListIteratorPullUpCurrent(LinkedListIterator* iterator);
 
+#define DEFAULT_HBST_ROOT 500000000
+#define MAX_HBST_DEPTH 1023
+
 struct implHashTreeNode{
 	unsigned long hash;
 	char *key;

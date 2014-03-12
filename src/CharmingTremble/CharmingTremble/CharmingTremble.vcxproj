@@ -40,15 +40,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\include;$(MSBuildProjectDirectory)\..\..\Lib\FreeType\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\FreeType\include;$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\SDL2\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\FreeType\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;libpng17.lib;zlib.lib;libfreetype252.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\FreeType\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;zlib.lib;libpng17.lib;libtga101.lib;libfreetype252.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <Profile>true</Profile>
     </Link>
@@ -67,7 +67,7 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\include;$(MSBuildProjectDirectory)\..\..\Lib\FreeType\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\include;$(MSBuildProjectDirectory)\..\..\Lib\FreeType\include;$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CompileAs>CompileAsC</CompileAs>
@@ -76,8 +76,8 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\SDL2\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\FreeType\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;libpng17.lib;zlib.lib;libfreetype252.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\..\..\Lib\SDL2\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\ImageLib\lib\x86;$(MSBuildProjectDirectory)\..\..\Lib\FreeType\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;zlib.lib;libpng17.lib;libtga101.lib;libfreetype252.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -98,8 +98,10 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
     <ClCompile Include="math.c" />
     <ClCompile Include="memory.c" />
     <ClCompile Include="oswork.c" />
+    <ClCompile Include="pmd.c" />
     <ClCompile Include="renderengine.c" />
     <ClCompile Include="resourcemanager.c" />
+    <ClCompile Include="stbi.c" />
     <ClCompile Include="util.c" />
     <ClCompile Include="world.c" />
   </ItemGroup>
@@ -113,8 +115,10 @@ xcopy /e /y "$(MSBuildProjectDirectory)\..\..\Files-Win32" "$(TargetDir)"</Comma
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="oswork.h" />
+    <ClInclude Include="pmd.h" />
     <ClInclude Include="renderengine.h" />
     <ClInclude Include="resourcemanager.h" />
+    <ClInclude Include="stbi.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="world.h" />
   </ItemGroup>

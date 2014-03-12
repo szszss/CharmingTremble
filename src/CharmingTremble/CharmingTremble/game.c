@@ -11,6 +11,7 @@
 #include "math.h"
 #include "oswork.h"
 #include "gui.h"
+#include "pmd.h"
 
 void GameClose();
 void GameMainLoop();
@@ -32,8 +33,9 @@ int main(int argc, char** argv)
 	LoggerInfo("SDL initialized");
 	MathInit();
 	RM_InitResourceManager();
+	PMD_Init();
 	RE_InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT);
-	IN_InitInput();
+	IN_InitInput();	
 	InitEntities();
 	InitAttributes();
 	GameMainLoop();
@@ -124,6 +126,7 @@ void GameClose()
 		WorldDestory(theWorld);
 	IN_DestroyInput();
 	RE_DestroyWindow();
+	PMD_Close();
 	RM_Close();
 	SDL_Quit();
 	LoggerInfo("SDL closed");

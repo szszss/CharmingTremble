@@ -200,27 +200,39 @@ Texture* RM_LoadPNG( char* imageFile )
 
 Texture* RM_LoadTGA(char* imageFile)
 {
+	//	int test[9];
+	//	int i;
 	Texture* texture = NULL;
 	TGAData tgaData;
 	TGA *tga;
 	int colorFormat;
+	BOOL hasAlpha = FALSE;
 	tga = TGAOpen(imageFile,"rb");
 	tgaData.flags = TGA_IMAGE_DATA | TGA_IMAGE_ID | TGA_RGB;
 	TGAReadImage(tga,&tgaData);
 	texture = (Texture*)malloc_s(sizeof(Texture));
 	texture->width=tga->hdr.width;
 	texture->height=tga->hdr.height;
+	hasAlpha=tga->hdr.alpha>0;
 	if(tgaData.flags & TGA_BGR)
 	{
-		colorFormat = GL_BGR;
+		if(hasAlpha)
+			colorFormat = GL_BGRA;
+		else
+			colorFormat = GL_BGR;
 	}
 	else
 	{
-		colorFormat = GL_RGB;
+		if(hasAlpha)
+			colorFormat = GL_RGBA;
+		else
+			colorFormat = GL_RGB;
 	}
-	RM_ReverseRawData(tgaData.img_data,texture->width,texture->height,3);
+	//	for(i=0;i<9;i++)
+	//		test[i]=tgaData.img_data[i];
+	RM_ReverseRawData(tgaData.img_data,texture->width,texture->height,hasAlpha?4:3);
 	texture->id=RE_ProcessRawTexture(tgaData.img_data,
-		GL_RGB8,
+		hasAlpha>0?GL_RGBA:GL_RGB8,
 		colorFormat,
 		texture->width,texture->height);
 	TGAClose(tga);

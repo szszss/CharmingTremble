@@ -129,9 +129,40 @@ int RE_BindTexture(Texture* texture)
 	}
 }
 
+void RE_SetMaterial(float* diffuse,float* ambient,float* specular,float* shininess)
+{
+	static float defaultDiffuse[] = {1,1,1,1};
+	static float defaultAmbient[] = {0.5f,0.5f,0.5f};
+	//static float defaultAmbient[] = {1,1,1};
+	static float defaultSpecular[] = {0,0,0};
+	static float defaultShininess = 0;
+
+	if(diffuse!=NULL)
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+	else
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, defaultDiffuse);
+
+	if(ambient!=NULL)
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
+	else
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, defaultAmbient);
+
+	if(specular!=NULL)
+		glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR, specular);
+	else
+		glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR, defaultSpecular);
+
+	if(shininess!=NULL)
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, *shininess);
+	else
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, defaultShininess);
+}
+
 int RE_Render()
 {
-	static float amLight[] = {0.2,0.2,0.2,1};
+	static float amLight[] = {1,1,1,1};
+	static float light0Position[] = {0,0,1,1};
+	static float light0Diffuse[] = {1,1,1,1};
 	static Texture* texture = NULL;
 	//------------------一些处理-------------------
 	RE_UpdateTextTextureCache();
@@ -151,8 +182,11 @@ int RE_Render()
 	//glShadeModel(GL_SMOOTH);
 	//glEnable(GL_LINE_SMOOTH);
 	//glEnable(GL_POINT_SMOOTH);
-	//glEnable(GL_LIGHTING);
-	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT,amLight);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,amLight);
+	glLightfv(GL_LIGHT0,GL_POSITION,light0Position);
+	glLightfv(GL_LIGHT0,GL_DIFFUSE,light0Diffuse);
 	//glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 	//glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);
 	//glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
@@ -167,7 +201,8 @@ int RE_Render()
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_POINT_SMOOTH);
-	//glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHT0);
+	glDisable(GL_LIGHTING);
 	glFlush();
 	RE_CheckGLError(RE_STAGE_FLUSH_3D);
 	//-------------------绘制2D-------------------

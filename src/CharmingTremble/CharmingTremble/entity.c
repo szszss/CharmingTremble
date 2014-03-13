@@ -169,8 +169,8 @@ void EntityPlayerRender(void* entity,World* world)
 	EntityPlayer *player = (EntityPlayer*)entity;
 	PMD_Model *model = player->model;
 	glPushMatrix();
-	//glTranslatef(player->base.posX,player->base.posY,0);
-	glTranslatef(0,-10,20);
+	glTranslatef(player->base.posX,player->base.posY,0);
+	//glTranslatef(0,-10,20);
 	if(model==NULL)
 	{
 		if(texture==NULL)
@@ -179,13 +179,14 @@ void EntityPlayerRender(void* entity,World* world)
 		}
 		//glTranslatef(-4,3+(float)(tickTime)/10.0f,0);
 		RE_BindTexture(texture);
+		RE_ClearMaterial();
 		RE_RenderCube(-0.5,2,-0.5,0.5,0,0.5);
 		RE_BindTexture(NULL);
 		
 	}
 	else
 	{
-		static float scale = 1.0f;
+		static float scale = 0.15f;
 		int i,face;
 		long materialPointer=-1;
 		long materialThreshold=2000000000;
@@ -208,10 +209,10 @@ void EntityPlayerRender(void* entity,World* world)
 				materialPointer++;
 				materialThreshold+=model->materials[materialPointer].faceAmount;
 				RE_BindTexture(model->materials[materialPointer].texture);
-				glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, &(model->materials[materialPointer].diffuseR));
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, &(model->materials[materialPointer].ambientR));
-				glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR, &(model->materials[materialPointer].specularR));
-				glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, model->materials[materialPointer].shininess);
+				RE_SetMaterial(&(model->materials[materialPointer].diffuseR),
+								&(model->materials[materialPointer].ambientR),
+								&(model->materials[materialPointer].specularR),
+								&(model->materials[materialPointer].shininess));
 			}
 			glBegin(GL_TRIANGLES);
 				vertex = model->indexes[i+2];
@@ -361,6 +362,7 @@ void EntityBlockRender(void* entity,World* world)
 	glPushMatrix();
 
 	RE_BindTexture(block->texture);
+	RE_ClearMaterial();
 	glTranslatef(block->base.posX,block->base.posY,0);
 	RE_RenderCubeQuick(width);
 	RE_BindTexture(NULL);

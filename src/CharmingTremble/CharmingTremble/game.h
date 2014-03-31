@@ -43,11 +43,17 @@ typedef struct implEntityBlockBonus     EntityBlockBonus;   //带特殊加成的
 typedef struct implTexture              Texture;            //纹理
 typedef struct implTextTexture          TextTexture;        //文字纹理
 
-typedef struct impl_PMD_Model           PMD_Model;          //PMD模型
-typedef struct impl_PMD_ModelInstance   PMD_ModelInstance;  //PMD模型实例
-typedef struct impl_PMD_Texture         PMD_Texture;        //纹理
-typedef struct impl_PMD_Material        PMD_Material;       //材质
-typedef struct impl_PMD_Vertex          PMD_Vertex;         //顶点
+typedef struct implPMD_Model            PMD_Model;          //PMD模型
+typedef struct implPMD_ModelInstance    PMD_ModelInstance;  //PMD模型实例
+//typedef struct implPMD_Texture        PMD_Texture;        //纹理
+typedef struct implPMD_Material         PMD_Material;       //材质
+typedef struct implPMD_Vertex           PMD_Vertex;         //顶点
+typedef struct implPMD_Bone             PMD_Bone;           //骨骼
+typedef struct implPMD_BoneInstance     PMD_BoneInstance;   //骨骼实例
+typedef struct implPMD_BoneHierarchy    PMD_BoneHierarchy;  //骨骼层次体系
+typedef struct implPMD_Animation        PMD_Animation;      //动画
+typedef struct implPMD_KeyFrame         PMD_KeyFrame;       //动画关键帧
+typedef struct implPMD_AnimationPlayer  PMD_AnimationPlayer;//动画播放器
 
 typedef struct implGuiScreen            GuiScreen;          //界面
 typedef struct implGuiButton            GuiButton;          //按钮
@@ -59,9 +65,13 @@ typedef struct implLinkedListIterator   LinkedListIterator; //链表遍历器
 typedef struct implLinkedListNode       _LinkedListNode;    //链表节点
 typedef struct implHashTree             HashTree;           //哈希二叉树
 typedef struct implHashTreeNode         _HashTreeNode;      //哈希二叉树节点
+
 typedef struct implMTRandomGen          MTRandomGen;        //梅森旋转算法随机数发生器
 typedef struct implLogger               Logger;             //日志记录器
 typedef struct implStringBuilder        StringBuilder;      //字符串构造器
+
+typedef struct implQuaternion           Quaternion;         //四元数
+typedef struct implMatrix               Matrix;             //矩阵
 
 /*
 enum ScreenState {

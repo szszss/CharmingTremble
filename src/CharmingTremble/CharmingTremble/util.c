@@ -164,7 +164,7 @@ int LoggerFatal(char* text,...)
 //int LoggerFatalln(char* text);
 void LoggerClose()
 {
-	LoggerInfo("Closing logger. Good-byte! Cruel world!\n");
+	LoggerInfo("Closing logger. Remained pointers:%d. Good-byte! Cruel world!\n",GetRemainedPointerCount());
 	fclose(logger.loggerFile);
 }
 
@@ -214,6 +214,8 @@ void SBDestroy(StringBuilder *sb)
 	free_s(sb);
 }
 
+//BKDRHash
+/*
 Hash HashCode(char* string)
 {
 	static unsigned long seed = 131;
@@ -222,6 +224,18 @@ Hash HashCode(char* string)
 	{  
 		hash = hash * seed + (*string++);  
 	}  
+	hash &= 0x7FFFFFFF;
+	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
+}*/
+
+//DJBHash, faster than BKDRHash
+Hash HashCode(char* string)
+{
+	unsigned long hash = 5381;
+	while (*string)
+	{
+		hash += (hash << 5) + (*string++);
+	}
 	hash &= 0x7FFFFFFF;
 	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
 }

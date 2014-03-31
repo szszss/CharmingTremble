@@ -1,4 +1,4 @@
-#include "attribute.h"
+﻿#include "attribute.h"
 #include "entity.h"
 #include "memory.h"
 //#include "collection.h"

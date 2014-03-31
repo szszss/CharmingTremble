@@ -65,7 +65,7 @@ struct implEntityPlayer
 	BOOL down;
 	BOOL jump;
 	BOOL landed;
-	PMD_Model *model;
+	PMD_ModelInstance *modelInstance;
 };
 
 int InitEntities();
@@ -75,6 +75,7 @@ void EntityDestroy(void* entity,World* world,int cause);
 void* EntityPlayerCreate(World* world,float x,float y,...);
 int EntityPlayerUpdate(void* entity,World* world);
 void EntityPlayerRender(void* entity,World* world);
+void EntityPlayerDestroy(void* entity,World* world,int cause);
 void EntityPlayerLifeChange(void* entity,World* world,int value);
 /*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/
 void* EntityBlockCreate(World* world,float x,float y,...);

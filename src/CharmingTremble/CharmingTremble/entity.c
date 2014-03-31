@@ -54,7 +54,7 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	player->speedFactorY=1.0f;
 	player->life=5;
 	player->score=0;
-	player->model=PMD_LoadModel("model/koishi","koishi.pmd");
+	player->modelInstance=PMD_ModelInstanceCreate(PMD_LoadModel("model/koishi","koishi.pmd"));
 	player->id=va_arg(args, byte);
 	va_end(args); 
 	return player;
@@ -167,11 +167,10 @@ void EntityPlayerRender(void* entity,World* world)
 {
 	static Texture *texture = NULL;
 	EntityPlayer *player = (EntityPlayer*)entity;
-	PMD_Model *model = player->model;
 	glPushMatrix();
 	glTranslatef(player->base.posX,player->base.posY,0);
 	//glTranslatef(0,-10,20);
-	if(model==NULL)
+	if(player->modelInstance==NULL)
 	{
 		if(texture==NULL)
 		{
@@ -186,54 +185,16 @@ void EntityPlayerRender(void* entity,World* world)
 	}
 	else
 	{
-		static float scale = 0.15f;
-		int i,face;
-		long materialPointer=-1;
-		long materialThreshold=2000000000;
-		long vertex;
-		int indexCount = model->indexCount;
-		if(model->materialCount>0)
-		{
-			materialThreshold=0;		
-		}
-		glPushAttrib(GL_ALL_ATTRIB_BITS);
-		//glEnable(GL_LIGHTING);
-		//glShadeModel(GL_SMOOTH);
-		glDisable(GL_CULL_FACE);
-		glScalef(scale,scale,scale);
-		glColor3f(1,1,1);
-		for(i=0,face=0;i<indexCount;i++,face++)
-		{
-			if(face==materialThreshold)
-			{
-				materialPointer++;
-				materialThreshold+=model->materials[materialPointer].faceAmount;
-				RE_BindTexture(model->materials[materialPointer].texture);
-				RE_SetMaterial(&(model->materials[materialPointer].diffuseR),
-								&(model->materials[materialPointer].ambientR),
-								&(model->materials[materialPointer].specularR),
-								&(model->materials[materialPointer].shininess));
-			}
-			glBegin(GL_TRIANGLES);
-				vertex = model->indexes[i+2];
-				glNormal3f(model->vertexs[vertex].nx, model->vertexs[vertex].ny, model->vertexs[vertex].nz);
-				glTexCoord2f(model->vertexs[vertex].u,model->vertexs[vertex].v);
-				glVertex3f(model->vertexs[vertex].x, model->vertexs[vertex].y, model->vertexs[vertex].z);
-				vertex = model->indexes[i+1];
-				glNormal3f(model->vertexs[vertex].nx, model->vertexs[vertex].ny, model->vertexs[vertex].nz);
-				glTexCoord2f(model->vertexs[vertex].u,model->vertexs[vertex].v);
-				glVertex3f(model->vertexs[vertex].x, model->vertexs[vertex].y, model->vertexs[vertex].z);
-				vertex = model->indexes[i];
-				glNormal3f(model->vertexs[vertex].nx, model->vertexs[vertex].ny, model->vertexs[vertex].nz);
-				glTexCoord2f(model->vertexs[vertex].u,model->vertexs[vertex].v);
-				glVertex3f(model->vertexs[vertex].x, model->vertexs[vertex].y, model->vertexs[vertex].z);
-				i+=2;
-			glEnd();
-		}
-		RE_BindTexture(NULL);
-		glPopAttrib();
+		PMD_ModelInstanceRender(player->modelInstance);
 	}
 	glPopMatrix();
+}
+
+void EntityPlayerDestroy(void* entity,World* world,int cause)
+{
+	EntityPlayer *player = (EntityPlayer*)entity;
+	PMD_ModelInstanceDestroy(player->modelInstance);
+	EntityDestroy(entity,world,cause);
 }
 
 void EntityPlayerLifeChange( void* entity,World* world,int value )
@@ -428,7 +389,7 @@ int InitEntities()
 	entityPlayerPrototype.create = EntityPlayerCreate;
 	entityPlayerPrototype.update = EntityPlayerUpdate;
 	entityPlayerPrototype.render = EntityPlayerRender;
-	entityPlayerPrototype.destroy = EntityDestroy;
+	entityPlayerPrototype.destroy = EntityPlayerDestroy;
 	((EntityPrototype*)&entityBlockPrototype)->create = EntityBlockCreate;
 	((EntityPrototype*)&entityBlockPrototype)->update = EntityBlockUpdate;
 	((EntityPrototype*)&entityBlockPrototype)->render = EntityBlockRender;

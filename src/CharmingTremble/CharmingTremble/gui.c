@@ -73,10 +73,10 @@ void GuiScreenGameRender(GuiScreen* screen,World* world)
 	sprintf(life,"%d",world->players[0]->life);
 	sprintf(score,"%d",world->players[0]->score);
 	glColor3f(1,0,0);
-	RE_DrawTextStatic("Life:",0.65,0.1,1);
-	RE_DrawTextVolatile(life,0.65,0.14,1);
-	RE_DrawTextStatic("Score:",0.65,0.18,1);
-	RE_DrawTextVolatile(score,0.65,0.22,1);
+	RE_DrawTextStatic("Life:", 0.65f, 0.1f, 1.0f);
+	RE_DrawTextVolatile(life, 0.65f, 0.14f, 1.0f);
+	RE_DrawTextStatic("Score:", 0.65f, 0.18f, 1.0f);
+	RE_DrawTextVolatile(score, 0.65f, 0.22f, 1.0f);
 	glColor3f(1,1,1);
 	free_s(life);
 	free_s(score);

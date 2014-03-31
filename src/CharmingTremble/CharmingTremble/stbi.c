@@ -1,4 +1,4 @@
-#include "stbi.h"
+﻿#include "stbi.h"
 #include "memory.h"
 
 #ifndef STBI_HEADER_FILE_ONLY

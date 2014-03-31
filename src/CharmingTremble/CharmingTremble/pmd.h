@@ -1,9 +1,10 @@
-#ifndef pmd_h__
+﻿#ifndef pmd_h__
 #define pmd_h__
 
 #include "game.h"
+#include "math.h"
 
-struct impl_PMD_Vertex
+struct implPMD_Vertex
 {
 	float x;
 	float y;
@@ -19,42 +20,99 @@ struct impl_PMD_Vertex
 	char edge;
 };
 
-struct impl_PMD_Model
+struct implPMD_Model
 {
+	char *name;
 	PMD_Vertex *vertexs;
 	unsigned short *indexes;
 	PMD_Material *materials;
+	PMD_Bone *bones;
+	HashTree *boneMapping;
 	unsigned long vertexCount;
 	unsigned long indexCount;
 	unsigned long materialCount;
+	unsigned short boneCount;
 };
 
-struct impl_PMD_ModelInstance
+struct implPMD_Bone
+{
+	char name[21];
+	char boneType;
+	short parent;
+	short child;
+	short targetBone;
+	float posX;
+	float posY;
+	float posZ;
+};
+
+struct implPMD_BoneInstance
+{
+	PMD_Bone *bone;
+	int pass;
+	float nowPosX;
+	float nowPosY;
+	float nowPosZ;
+	Matrix transformMatrix; //变换矩阵
+	/*
+	pass表示当前骨骼的变换阶段和状态.
+	低4位 - 阶段:
+	0000 0 尚未进行任何变换
+	0001 1 相对变换阶段
+	0010 2 绝对变换阶段
+	低5~8位 - 状态:
+	0000 0 未曾设置 (无需顶点变换)
+	0001 1 设置了相对变换矩阵
+	0010 2 未设置相对变换矩阵,但父骨骼中存在被设置了相对变换矩阵的.
+	0011 2 设置了相对变换矩阵,且父骨骼中存在被设置了相对变换矩阵的.
+	*/
+};
+
+struct implPMD_BoneHierarchy
+{
+	PMD_BoneInstance *boneInstaces;
+};
+
+struct implPMD_Animation
+{
+	char *name;
+	long frameLength; //总帧长
+	PMD_KeyFrame *keyFrame;
+};
+
+struct implPMD_KeyFrame
+{
+	short count;
+	long nextFrame;
+	char **boneName;
+	float *posX;
+	float *posY;
+	float *posZ;
+	Quaternion *rot;
+};
+
+struct implPMD_AnimationPlayer
+{
+	PMD_Animation *animation;
+	PMD_KeyFrame currentKeyFrame;
+	long currentFrame;
+};
+
+struct implPMD_ModelInstance
 {
 	PMD_Model *model;
-	double posX;
+	PMD_BoneHierarchy boneHierarchy;
+	PMD_AnimationPlayer animationPlayer;
+	/*double posX;
 	double posY;
 	double posZ;
 	double homogeneity;
 	double scaleX;
 	double scaleY;
-	double scaleZ;
+	double scaleZ;*/
 };
 
-/*
-struct impl_PMD_Texture
-{
-	enum PMD_Texture_Status status;
-	enum PMD_Texture_Type   type;     //The texture type. Such as normal, toon...
-	enum PMD_Texture_Format format;   //The image format. Such as jpg, bmp...
-	char *textureName;
-	byte *rawData;               //The raw image data of texture, such as bitmap or raw jpg data, depends on image format.
-	int texturegid;
-	unsigned int used;           //How many models (not model instances) use this texture.
-};
-*/
-
-struct impl_PMD_Material
+struct implPMD_Material
 {
 	float diffuseR;
 	float diffuseG;
@@ -77,5 +135,10 @@ void PMD_Init();
 void PMD_Close();
 
 PMD_Model* PMD_LoadModel(char *basePath,char *fileName);
+PMD_ModelInstance* PMD_ModelInstanceCreate(PMD_Model *model);
+void PMD_ModelInstanceDestroy(PMD_ModelInstance *modelInstance);
+void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance);
+//PMD_Model* PMD_DestroyModel(PMD_Model *model);
+PMD_Animation* PMD_LoadAnimation(char *basePath,char *fileName);
 
 #endif // pmd_h__

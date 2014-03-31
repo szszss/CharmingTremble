@@ -1,17 +1,17 @@
-#pragma once
+ï»¿#pragma once
 #include "game.h"
 
 struct implAttribute
 {
-	/*µ±Ò»¸öĞÂµÄÊôĞÔ±»Ìí¼Óµ½ÊµÌåÉÏÊ±´¥·¢.·µ»ØÖµÎªÊÇ·ñÍ¬ÒâÌí¼Ó.*/
+	/*å½“ä¸€ä¸ªæ–°çš„å±æ€§è¢«æ·»åŠ åˆ°å®ä½“ä¸Šæ—¶è§¦å‘.è¿”å›å€¼ä¸ºæ˜¯å¦åŒæ„æ·»åŠ .*/
 	BOOL (*onAdd)(World*,Entity*,AttributeInstance*);
-	/*µ±Ò»¸öÒÑÓĞÊôĞÔ±»ÑÓĞøÊ±´¥·¢.·µ»ØÖµÎªÊÇ·ñÍ¬ÒâÑÓĞø.*/
+	/*å½“ä¸€ä¸ªå·²æœ‰å±æ€§è¢«å»¶ç»­æ—¶è§¦å‘.è¿”å›å€¼ä¸ºæ˜¯å¦åŒæ„å»¶ç»­.*/
 	void (*onExtend)(World*,Entity*,AttributeInstance*);
-	/*Ã¿tick´¥·¢Ò»´Î.·µ»ØÖµÎªÊÇ·ñ¼ÌĞø´æÔÚ(·µ»ØFALSEÁ¢¿ÌÒı·¢Ïú»ÙºÍonExpire)*/
+	/*æ¯tickè§¦å‘ä¸€æ¬¡.è¿”å›å€¼ä¸ºæ˜¯å¦ç»§ç»­å­˜åœ¨(è¿”å›FALSEç«‹åˆ»å¼•å‘é”€æ¯å’ŒonExpire)*/
 	BOOL (*onUpdate)(World*,Entity*,AttributeInstance*);
-	/*Ã¿´Î3DäÖÈ¾´¥·¢Ò»´Î.*/
+	/*æ¯æ¬¡3Dæ¸²æŸ“è§¦å‘ä¸€æ¬¡.*/
 	void (*onRender)(World*,Entity*,AttributeInstance*);
-	/*ÊôĞÔÏû³ıÊ±Òı·¢.*/
+	/*å±æ€§æ¶ˆé™¤æ—¶å¼•å‘.*/
 	void (*onExpire)(World*,Entity*,AttributeInstance*);
 	unsigned long defaultLife;
 };
@@ -19,9 +19,9 @@ struct implAttribute
 struct implAttributeInstance
 {
 	Attribute *attribute;
-	/*Ê£ÓàµÄTick*/
+	/*å‰©ä½™çš„Tick*/
 	unsigned long lastLife;
-	/*´æÔÚÁË¶à¾Ã(Tick)*/
+	/*å­˜åœ¨äº†å¤šä¹…(Tick)*/
 	unsigned long elapseTime;
 	long long dataBits;
 };

@@ -372,13 +372,12 @@ _HashTreeNode* _HashTreeGet(HashTree* ht,char* key,BOOL* result)
 		}
 		else
 		{
-			if(node->nextNode==NULL || strcmp(key,node->key)==0)
+			if(strcmp(key,node->key)==0)
 			{
 				if(result!=NULL)
 					*result = TRUE;
 				return node;
 			}
-				
 			node=node->nextNode;
 		}
 	}

@@ -34,3 +34,4 @@ BOOL IN_KeyUp(SDL_Keycode keynum);
 unsigned char IN_GetOperate();
 void IN_UpdateInput();
 void IN_Clear();
+void IN_MouseDown(long x,long y);

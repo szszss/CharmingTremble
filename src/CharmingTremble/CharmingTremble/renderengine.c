@@ -34,7 +34,7 @@ void RE_RenderCubeDoCentre(float lx,float ly,float lz,float rx,float ry,float rz
 void RE_RenderCubeDoRight(float lx,float ly,float lz,float rx,float ry,float rz);
 void RE_DestroyQuicklyRender();
 void RE_DestroyFontRenderer();
-BOOL RE_DestroyTextTexture(void *texture);
+int RE_DestroyTextTexture(void *texture);
 TextTexture* RE_ProcessTextTexture(char* utf8Text,float maxWidth);
 void RE_UpdateTextTextureCache();
 
@@ -453,7 +453,7 @@ int RE_InitFontRenderer(int width,int height)
 	return 0;
 }
 
-BOOL RE_DestroyTextTexture(void *texture)
+int RE_DestroyTextTexture(void *texture)
 {
 	TextTexture *textTexture=(TextTexture*)texture;
 	if(!textTexture->isStatic)
@@ -462,7 +462,7 @@ BOOL RE_DestroyTextTexture(void *texture)
 	}
 	RE_UnloadTexture(textTexture->texture.id);
 	free_s(textTexture);
-	return TRUE;
+	return 0;
 }
 
 void RE_DestroyFontRenderer()
@@ -575,14 +575,14 @@ TextTexture* RE_ProcessTextTexture( char* utf8Text,float maxWidth )
 			usedLine++;
 		}
 		k=0;
-		headX+=slot->bitmap_left;
-		headY+=lineHeight-slot->bitmap_top-3;
+		headX+= slot->bitmap_left>0?slot->bitmap_left:0;
+		headY+=lineHeight - slot->bitmap_top-3;
 		for(j=0; j <h;j++) {
 			for(i=0; i < w; i++){
 				bytes[headX+i+(headY+j)*maxX]= i>=slot->bitmap.width||j>=slot->bitmap.rows?0:slot->bitmap.buffer[k++];
 			}
 		}
-		headX-=slot->bitmap_left;
+		headX-= slot->bitmap_left>0?slot->bitmap_left:0;
 		headY-=lineHeight-slot->bitmap_top-3;
 		headX+=slot->bitmap.width+2;
 		count++;

@@ -3,6 +3,8 @@
 #define WINDOW_TITLE "Charming Tremble"
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH_FLOAT 800.0f
+#define WINDOW_HEIGHT_FLOAT 600.0f
 #define WINDOW_FRAME 1000/60
 
 #if defined(_WIN32) || defined(WIN32)
@@ -100,6 +102,7 @@ enum WorldState{
 	WSTATE_GAMEOVERING,
 	WSTATE_GAMEOVERED};
 
+/*
 enum PMD_Texture_Status {
 	PMD_Texture_Status_Init       = 1,  //The data of texture hasn't been loaded. Unavailable.
 	PMD_Texture_Status_Loading    = 2,  //The data of texture is been loading. Unavailable.
@@ -121,8 +124,11 @@ enum PMD_Texture_Format {
 	PMD_Texture_Type_Png,
 	PMD_Texture_Type_Tga,
 	PMD_Texture_Type_Dds
-};
+};*/
 
+BOOL GameSetPause(BOOL pause);
+BOOL GameGetPause();
+void GameSafelyKillWorld();
 //崩溃掉游戏...并抛出原因
 void GameCrash(char* cause);
 void GameExit();

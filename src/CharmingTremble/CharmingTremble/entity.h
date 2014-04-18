@@ -87,9 +87,14 @@ void EntityBlockOnLeave(void* entity,World* world,EntityPlayer* player);
 void EntityBlockOnStepMoreScore(void* entity,World* world,EntityPlayer* player,BOOL first,int last);
 /*踩上去后减速*/
 void EntityBlockOnStepSlow(void* entity,World* world,EntityPlayer* player,BOOL first,int last);
+/*踩上去后坏掉*/
+void EntityBlockOnStepBreak(void* entity,World* world,EntityPlayer* player,BOOL first,int last);
 /*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/
 void* EntityBlockBrickCreate(World* world,float x,float y,...);
 /*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/
 void* EntityBlockMossyCreate(World* world,float x,float y,...);
+/*额外的附加参数:(byte)width - 宽度,(uint32)depth - 深度*/
+void* EntityBlockCobblestoneCreate(World* world,float x,float y,...);
+int EntityBlockCobblestoneUpdate(void* entity,World* world);
 
 int CallbackDestroyEntity(void* entity);

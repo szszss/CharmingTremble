@@ -9,6 +9,8 @@
 
 HashTree *modelMap;
 HashTree *animationMap;
+PMD_Animation *animationRun = NULL;
+PMD_Animation *animationStand = NULL;
 
 BOOL PMD_CheckMagicNumber(FILE *file);
 BOOL PMD_ReadHeader(PMD_Model *model,FILE *file);
@@ -28,6 +30,8 @@ void PMD_Init()
 {
 	modelMap = HashTreeCreate();
 	animationMap = HashTreeCreate();
+	animationRun = PMD_LoadAnimation("animation","run.vmd");
+	animationStand = PMD_LoadAnimation("animation","stand.vmd");
 	LoggerInfo("PMD initialized");
 }
 
@@ -45,7 +49,7 @@ void CallbackModelDestroy(void *_model)
 	free_s(model->indexes);
 	free_s(model->materials);
 	free_s(model->vertexs);
-	HashTreeDestroy(model->boneMapping,CallbackBoneDestroy);
+	//HashTreeDestroy(model->boneMapping,CallbackBoneDestroy);
 	/*for(i=0;i<model->boneCount;i++)
 	{
 		free_s(model->bones[i].name);
@@ -54,16 +58,25 @@ void CallbackModelDestroy(void *_model)
 	free_s(model);
 }
 
+void CallbackKeyFrameDestroy(void *_firstKeyFrame)
+{
+	PMD_KeyFrame *firstKeyFrame = (PMD_KeyFrame*)_firstKeyFrame;
+	while(firstKeyFrame!=NULL)
+	{
+		PMD_KeyFrame *old = firstKeyFrame;
+		firstKeyFrame = firstKeyFrame->nextFrame;
+		free_s(old->boneName);
+		free_s(old);
+	}
+}
+
 void CallbackAnimationDestroy(void *_animation)
 {
 	int i;
 	PMD_Animation *animation = (PMD_Animation*)_animation;
-	for(i=0;i<animation->frameLength;i++)
-	{
-		PMD_KeyFrame *keyFrame = animation->keyFrame+i;
-		free_s(keyFrame->boneName);
-	}
-	free_s(animation->keyFrame);
+	HashTreeDestroy(animation->frameHT,CallbackKeyFrameDestroy);
+	free_s(animation->name);
+	free_s(animation);
 }
 
 void CallbackBoneDestroy(void *_bone)
@@ -230,7 +243,7 @@ BOOL PMD_ReadBone(PMD_Model *model,FILE *file)
 	unsigned short count = LESReadUInt16(file);
 	model->boneCount = count;
 	model->bones = (PMD_Bone *)malloc_s(count*sizeof(PMD_Bone));
-	model->boneMapping = HashTreeCreate(); //不要忘了销毁时释放字符串内存(已实现)
+	//model->boneMapping = HashTreeCreate(); //不要忘了销毁时释放字符串内存(已实现)
 	for(i=0;i<count;i++)
 	{
 		unsigned short *number = (unsigned short*)malloc_s(sizeof(unsigned short));
@@ -238,7 +251,7 @@ BOOL PMD_ReadBone(PMD_Model *model,FILE *file)
 		memset(model->bones[i].name, 0, 21*sizeof(char));
 		LESReadBytes(file,(byte*)model->bones[i].name,20);
 		*number = i;
-		HashTreeAdd(model->boneMapping, (model->bones[i].name) ,number);
+		//HashTreeAdd(model->boneMapping, (model->bones[i].name) ,number);
 		model->bones[i].parent = LESReadInt16(file);
 		model->bones[i].child = LESReadInt16(file);
 		model->bones[i].boneType = LESReadByte(file);
@@ -266,11 +279,15 @@ PMD_ModelInstance* PMD_ModelInstanceCreate(PMD_Model *model)
 		boneInstance->pass = 0;
 		boneInstance->transformMatrix = MathMatrixCreate(NULL);
 	}
+	modelInstance->animationPlayer.currentFrameIndex=0;
+	modelInstance->animationPlayer.animation=NULL;
 	return modelInstance;
 }
 
 void PMD_ModelInstanceDestroy(PMD_ModelInstance *modelInstance)
 {
+	if(modelInstance==NULL)
+		return;
 	free_s(modelInstance->boneHierarchy.boneInstaces);
 	free_s(modelInstance);
 }
@@ -297,15 +314,15 @@ BOOL PMD_MixMatrix(Matrix *result,PMD_BoneInstance *b0,PMD_BoneInstance *b1,floa
 {
 	if(weight>0.99f)
 	{
-		if((b0->pass&48) == 0)
-			return FALSE;
+		//if((b0->pass&48) == 0)
+		//	return FALSE;
 		*result = b0->transformMatrix;
 	}
 	else if(weight>0.01f)
 	{
 		int i;
-		if(((b0->pass&48) == 0) && ((b1->pass&48) == 0))
-			return FALSE;
+		//if(((b0->pass&48) == 0) && ((b1->pass&48) == 0))
+		//	return FALSE;
 		for(i=0;i<16;i++)
 		{
 			*(&(result->m00)+i) = *(&(b0->transformMatrix.m00)+i) * weight + *(&(b1->transformMatrix.m00)+i) * (1.0f - weight);
@@ -313,8 +330,8 @@ BOOL PMD_MixMatrix(Matrix *result,PMD_BoneInstance *b0,PMD_BoneInstance *b1,floa
 	}
 	else
 	{
-		if((b1->pass&48) == 0)
-			return FALSE;
+		//if((b1->pass&48) == 0)
+		//	return FALSE;
 		*result = b1->transformMatrix;
 	}
 	return TRUE;
@@ -322,7 +339,8 @@ BOOL PMD_MixMatrix(Matrix *result,PMD_BoneInstance *b0,PMD_BoneInstance *b1,floa
 
 void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance)
 {
-	static float scale = 0.15f;
+	//static float scale = 0.15f;
+	static float scale = 0.55f;
 	float vbuffer[3];
 	Matrix matrix;
 	Matrix *m1;
@@ -333,6 +351,7 @@ void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance)
 	long vertex;
 	PMD_Model *model = modelInstance->model;
 	int indexCount = model->indexCount;
+	PMD_AnimationTick(modelInstance);
 	if(model->materialCount>0)
 	{
 		materialThreshold=0;		
@@ -342,6 +361,7 @@ void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance)
 	//glShadeModel(GL_SMOOTH);
 	glDisable(GL_CULL_FACE);
 	glScalef(scale,scale,scale);
+	//glRotatef(90,0,1,0);
 	glColor3f(1,1,1);
 	for(i=0,face=0;i<indexCount;i++,face++)
 	{
@@ -363,8 +383,8 @@ void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance)
 			vbuffer[1]=model->vertexs[vertex].y;
 			vbuffer[2]=model->vertexs[vertex].z;
 			if(!PMD_MixMatrix(&matrix, 
-				&modelInstance->boneHierarchy.boneInstaces[model->vertexs[vertex].bone0].transformMatrix,
-				&modelInstance->boneHierarchy.boneInstaces[model->vertexs[vertex].bone1].transformMatrix,
+				&modelInstance->boneHierarchy.boneInstaces[model->vertexs[vertex].bone0],
+				&modelInstance->boneHierarchy.boneInstaces[model->vertexs[vertex].bone1],
 				model->vertexs[vertex].weight))
 			{
 				vbuffer[0]=model->vertexs[vertex].x;
@@ -439,12 +459,12 @@ BOOL VMD_CheckMagicNumber(FILE *file)
 	char magicNumber[30];
 	memset(magicNumber,0,30*sizeof(char));
 	LESReadBytes(file,(byte*)magicNumber,30);
-	if(strcmp(magicNumber,"Vocaloid Motion Data file"))
+	if(strcmp(magicNumber,"Vocaloid Motion Data file")==0)
 	{
 		LESReadBytes(file,(byte*)magicNumber,10);
 		return TRUE;
 	}
-	else if(strcmp(magicNumber,"Vocaloid Motion Data 0002"))
+	else if(strcmp(magicNumber,"Vocaloid Motion Data 0002")==0)
 	{
 		LESReadBytes(file,(byte*)magicNumber,20);
 		return TRUE;
@@ -455,27 +475,74 @@ BOOL VMD_CheckMagicNumber(FILE *file)
 typedef struct
 {
 	char *name;
+	long currentFrame;
 	float posX;
 	float posY;
 	float posZ;
 	Quaternion rotQuaternion;
 } _TEMP_KeyFrame;
 
+
+
+HashTree *VMD_MakeKeyFrame(LinkedList *list,long maxFrame)
+{
+	int j = 0;
+	LinkedListIterator *iterator;
+	HashTree *hashTree = HashTreeCreate();
+	for(iterator=LinkedListGetIterator(list);LinkedListIteratorHasNext(iterator);)
+	{
+		_TEMP_KeyFrame *tempFrame2 = (_TEMP_KeyFrame *)LinkedListIteratorGetNext(iterator);
+		PMD_KeyFrame *keyFrame = (PMD_KeyFrame *)malloc_s(sizeof(PMD_KeyFrame));
+		PMD_KeyFrame *firstKeyFrame = NULL;
+		keyFrame->nextFrame=NULL;
+		keyFrame->boneName=tempFrame2->name;
+		keyFrame->currentFrameIndex=tempFrame2->currentFrame;
+		keyFrame->posX=tempFrame2->posX;
+		keyFrame->posY=tempFrame2->posY;
+		keyFrame->posZ=tempFrame2->posZ;
+		keyFrame->rot=tempFrame2->rotQuaternion;
+		LinkedListIteratorDeleteCurrent(iterator);
+		free_s(tempFrame2);
+		j++;
+
+		firstKeyFrame = (PMD_KeyFrame*)HashTreeGet(hashTree,keyFrame->boneName,NULL);
+		if(firstKeyFrame==NULL)
+		{
+			HashTreeAdd(hashTree,keyFrame->boneName,keyFrame);
+		}
+		else
+		{
+			while(firstKeyFrame->nextFrame!=NULL)
+			{
+				firstKeyFrame=firstKeyFrame->nextFrame;
+			}
+			firstKeyFrame->nextFrame=keyFrame;
+		}
+	}
+	LinkedListDestory(list,NULL);
+	return hashTree;
+}
+
 BOOL VMD_ReadBoneKeyFrame(PMD_Animation *animation,FILE *file)
 {
 	unsigned long i;
 	unsigned long count = LESReadUInt32(file);
-	unsigned long postFrame = 0;
-	unsigned long nowFrame;
+	unsigned long maxFrame = 0;
+	byte dummyBytes[64];
 	_TEMP_KeyFrame *tempFrame;
 	LinkedList *list = LinkedListCreate();
+	animation->name = (char *)malloc_s(1*sizeof(char));
+	animation->name[0] = '\0';
 	for(i=0;i<count;i++)
 	{
 		char *name = (char*)malloc_s(15*sizeof(char));
+		long nowFrame;
 		LESReadBytes(file,(byte*)name,15);
 		nowFrame = LESReadUInt32(file);
+		maxFrame = nowFrame>maxFrame?nowFrame:maxFrame;
 		tempFrame = (_TEMP_KeyFrame *)malloc_s(sizeof(_TEMP_KeyFrame));
 		tempFrame->name = name;
+		tempFrame->currentFrame = nowFrame;
 		tempFrame->posX=LESReadFloat(file);
 		tempFrame->posY=LESReadFloat(file);
 		tempFrame->posZ=LESReadFloat(file);
@@ -484,31 +551,219 @@ BOOL VMD_ReadBoneKeyFrame(PMD_Animation *animation,FILE *file)
 		tempFrame->rotQuaternion.y=LESReadFloat(file);
 		tempFrame->rotQuaternion.z=LESReadFloat(file);
 		tempFrame->rotQuaternion.w=LESReadFloat(file);
-		LinkedListAdd(list,tempFrame);
-		if(nowFrame>postFrame)
+		LESReadBytes(file,dummyBytes,64); //Skip interpolation data.
+		/*if(nowFrame>postFrame)
 		{
-			int j=0;
-			LinkedListIterator *iterator;
-			PMD_KeyFrame *keyFrame = (PMD_KeyFrame *)malloc_s(sizeof(PMD_KeyFrame)); 
-			postFrame = nowFrame;
-			keyFrame->nextFrame=postFrame;
-			keyFrame->count=list->length;
-			keyFrame->boneName=(char**)malloc_s(keyFrame->count*sizeof(char*));
-			keyFrame->posX=(float*)malloc_s(keyFrame->count*sizeof(float));
-			keyFrame->posY=(float*)malloc_s(keyFrame->count*sizeof(float));
-			keyFrame->posZ=(float*)malloc_s(keyFrame->count*sizeof(float));
-			keyFrame->rot=(Quaternion*)malloc_s(keyFrame->count*sizeof(Quaternion));
-			for(iterator=LinkedListGetIterator(list);LinkedListIteratorHasNext(iterator);)
+			VMD_MakeKeyFrame(list,nowFrame);
+			postFrame=nowFrame;
+		}*/
+		LinkedListAdd(list,tempFrame);
+	}
+	animation->frameHT = VMD_MakeKeyFrame(list,maxFrame);
+	animation->frameLength = maxFrame;
+	return TRUE;
+}
+
+void PMD_UseAnimation(PMD_ModelInstance *modelInstance,PMD_Animation *animation)
+{
+	PMD_AnimationPlayer *player = &modelInstance->animationPlayer;
+	int i;
+	player->animation = animation;
+	//player->currentKeyFrame = animation->keyFrame[0];
+	player->currentFrameIndex = -1;
+	for(i=0;i<(modelInstance->model->boneCount);i++)
+	{
+		PMD_BoneInstance *boneInstance = modelInstance->boneHierarchy.boneInstaces + i;
+		BOOL result;
+		PMD_KeyFrame *keyFrame = (PMD_KeyFrame*)HashTreeGet(player->animation->frameHT,boneInstance->bone->name,&result);
+		if(result!=FALSE)
+		{
+			boneInstance->nowPosX = keyFrame->posX;
+			boneInstance->nowPosY = keyFrame->posY;
+			boneInstance->nowPosZ = keyFrame->posZ;
+			boneInstance->pass=0;
+			boneInstance->currentKeyFrame=keyFrame;
+			boneInstance->firstKeyFrame=keyFrame;
+			MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+			boneInstance->transformMatrix.m03 = keyFrame->posX;
+			boneInstance->transformMatrix.m13 = keyFrame->posY;
+			boneInstance->transformMatrix.m23 = keyFrame->posZ;
+			boneInstance->nowRot = keyFrame->rot;
+		}
+		else
+		{
+			boneInstance->nowPosX = 0.0f;
+			boneInstance->nowPosY = 0.0f;
+			boneInstance->nowPosZ = 0.0f;
+			boneInstance->pass=0;
+			boneInstance->currentKeyFrame=NULL;
+			boneInstance->firstKeyFrame=NULL;
+			MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+			MathQuaternionLoadIdentity(&(boneInstance->nowRot));
+		}	
+	}
+	//PMD_AnimationTick(modelInstance);
+}
+
+void PMD_AnimationBoneCala(PMD_ModelInstance *modelInstance,PMD_BoneInstance *boneInstance)
+{
+	if(boneInstance->bone->parent!=-1)
+	{
+		PMD_BoneInstance *parentInstance = modelInstance->boneHierarchy.boneInstaces + boneInstance->bone->parent;
+		Matrix tempMatrix;
+		if(parentInstance->pass!=48)
+			PMD_AnimationBoneCala(modelInstance,parentInstance);
+		tempMatrix = MathMatrixTranspose(&parentInstance->transformMatrix);
+		boneInstance->transformMatrix = MathMatrixMultiplyMatrix(&tempMatrix,&boneInstance->transformMatrix);
+		boneInstance->pass = 48;
+	}
+}
+
+void PMD_AnimationTick(PMD_ModelInstance *modelInstance)
+{
+	PMD_AnimationPlayer *player = &(modelInstance->animationPlayer);
+	int i;
+	if(player->animation==NULL)
+		return;
+	player->currentFrameIndex++;
+	if(player->currentFrameIndex > player->animation->frameLength)
+	{
+		player->currentFrameIndex = 0;
+		for(i=0;i<(modelInstance->model->boneCount);i++)
+		{
+			PMD_BoneInstance *boneInstance = modelInstance->boneHierarchy.boneInstaces + i;
+			boneInstance->pass = 0;
+			boneInstance->currentKeyFrame=boneInstance->firstKeyFrame;
+			if(boneInstance->firstKeyFrame!=NULL)
 			{
-				tempFrame = (_TEMP_KeyFrame *)LinkedListIteratorDeleteCurrent(iterator);
-				keyFrame->boneName[j]=tempFrame->name;
-				keyFrame->posX[j]=tempFrame->posX;
-				keyFrame->posY[j]=tempFrame->posY;
-				keyFrame->posZ[j]=tempFrame->posZ;
-				keyFrame->rot[j]=tempFrame->rotQuaternion;
+				boneInstance->nowPosX = boneInstance->firstKeyFrame->posX;
+				boneInstance->nowPosY = boneInstance->firstKeyFrame->posY;
+				boneInstance->nowPosZ = boneInstance->firstKeyFrame->posZ;
+				MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+				boneInstance->transformMatrix.m03 = boneInstance->firstKeyFrame->posX;
+				boneInstance->transformMatrix.m13 = boneInstance->firstKeyFrame->posY;
+				boneInstance->transformMatrix.m23 = boneInstance->firstKeyFrame->posZ;
+				boneInstance->nowRot = boneInstance->firstKeyFrame->rot;
+			}
+			else
+			{
+				boneInstance->nowPosX = 0.0f;
+				boneInstance->nowPosY = 0.0f;
+				boneInstance->nowPosZ = 0.0f;
+				MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+				MathQuaternionLoadIdentity(&(boneInstance->nowRot));
 			}
 		}
 	}
-
-	return TRUE;
+	else
+	{
+		for(i=0;i<(modelInstance->model->boneCount);i++)
+		{
+			PMD_BoneInstance *boneInstance = modelInstance->boneHierarchy.boneInstaces + i;
+			boneInstance->pass = 0;
+			if(boneInstance->currentKeyFrame!=NULL)
+			{
+				PMD_KeyFrame *currentKeyFrame = boneInstance->currentKeyFrame;
+				PMD_KeyFrame *nextKeyFrame = currentKeyFrame->nextFrame;
+				Matrix tempMatrix;
+				if(nextKeyFrame!=NULL)
+				{
+					if(player->currentFrameIndex == nextKeyFrame->currentFrameIndex)
+					{
+						currentKeyFrame = currentKeyFrame->nextFrame;
+						boneInstance->currentKeyFrame = currentKeyFrame;
+						boneInstance->nowPosX = currentKeyFrame->posX;
+						boneInstance->nowPosY = currentKeyFrame->posY;
+						boneInstance->nowPosZ = currentKeyFrame->posZ;
+						MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+						boneInstance->transformMatrix.m03 =currentKeyFrame->posX;
+						boneInstance->transformMatrix.m13 = currentKeyFrame->posY;
+						boneInstance->transformMatrix.m23 = currentKeyFrame->posZ;
+						boneInstance->nowRot = currentKeyFrame->rot;
+					}
+					else
+					{
+						float delta = (player->currentFrameIndex - currentKeyFrame->currentFrameIndex) / (float)(nextKeyFrame->currentFrameIndex - currentKeyFrame->currentFrameIndex);
+						float delta2 = 1.0 - delta;
+						boneInstance->nowPosX = nextKeyFrame->posX*delta2 + currentKeyFrame->posX*delta;
+						boneInstance->nowPosY = nextKeyFrame->posY*delta2 + currentKeyFrame->posY*delta;
+						boneInstance->nowPosZ = nextKeyFrame->posZ*delta2 + currentKeyFrame->posZ*delta;
+						MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+						boneInstance->transformMatrix.m03 = boneInstance->nowPosX;
+						boneInstance->transformMatrix.m13 = boneInstance->nowPosY;
+						boneInstance->transformMatrix.m23 = boneInstance->nowPosZ;
+						boneInstance->nowRot = MathQuaternionSlerp(&currentKeyFrame->rot,&nextKeyFrame->rot,delta);
+					}
+					//boneInstance->pass = 48;
+					boneInstance->pass |= 1; //标记为相对变换阶段
+					tempMatrix = MathQuaternionToMatrix(&(boneInstance->nowRot));
+					boneInstance->transformMatrix = MathMatrixMultiplyMatrix(&boneInstance->transformMatrix,&tempMatrix);
+				}
+			}
+			else
+			{
+				/*boneInstance->nowPosX = 0.0f;
+				boneInstance->nowPosY = 0.0f;
+				boneInstance->nowPosZ = 0.0f;
+				boneInstance->pass=0;
+				MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+				MathQuaternionLoadIdentity(&(boneInstance->nowRot));*/
+				//DO NOTHING
+			}
+		}
+	}
+	for(i=0;i<(modelInstance->model->boneCount);i++)
+	{
+		PMD_BoneInstance *boneInstance = modelInstance->boneHierarchy.boneInstaces + i;
+		if(boneInstance->pass!=48)
+		{
+			PMD_AnimationBoneCala(modelInstance,boneInstance);
+		}
+	}
+	/*if(player->currentFrameIndex > player->animation->frameLength)
+	{
+		int i;
+		player->currentFrame = 0;
+		player->postFrame = 0;
+		player->currentFrameIndex = 0;
+		player->currentKeyFrame = player->animation->keyFrame;
+		player->nextKeyFrame = player->animation->keyFrame+1;
+		for(i=0;i<player->currentKeyFrame->count;i++)
+		{
+			PMD_BoneInstance *boneInstance = &modelInstance->boneHierarchy.boneInstaces[*((unsigned short *)HashTreeGet(modelInstance->model->boneMapping,player->currentKeyFrame->boneName[i],NULL))];
+			boneInstance->pass |= 1; //标记为相对变换阶段
+			boneInstance->nowPosX = player->currentKeyFrame->posX[i];
+			boneInstance->nowPosY = player->currentKeyFrame->posY[i];
+			boneInstance->nowPosZ = player->currentKeyFrame->posZ[i];
+			boneInstance->nowRot = player->currentKeyFrame->rot[i];
+			MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+			boneInstance->transformMatrix.m03 = boneInstance->nowPosX;
+			boneInstance->transformMatrix.m13 = boneInstance->nowPosY;
+			boneInstance->transformMatrix.m23 = boneInstance->nowPosZ;
+			boneInstance->transformMatrix = MathMatrixMultiplyMatrix(&boneInstance->transformMatrix,&MathQuaternionToMatrix(&(boneInstance->nowRot)));
+		}
+	}
+	else
+	{
+		float rate = (float)(player->currentFrame - player->postFrame) / (float)(player->currentKeyFrame->nextFrame - player->postFrame);
+		for(i=0;i<player->nextKeyFrame->count;i++)
+		{
+			PMD_BoneInstance *boneInstance = &modelInstance->boneHierarchy.boneInstaces[*((unsigned short *)HashTreeGet(modelInstance->model->boneMapping,player->nextKeyFrame->boneName[i],NULL))];
+			boneInstance->pass |= 1; //标记为相对变换阶段
+			boneInstance->nowPosX = player->currentKeyFrame->posX[i] + player->nextKeyFrame->posX[i]*rate;
+			boneInstance->nowPosY = player->currentKeyFrame->posY[i] + player->nextKeyFrame->posY[i]*rate;
+			boneInstance->nowPosZ = player->currentKeyFrame->posZ[i] + player->nextKeyFrame->posZ[i]*rate;
+			boneInstance->nowRot = MathQuaternionSlerp(player->currentKeyFrame->rot+i,player->nextKeyFrame->rot+i,rate);
+			MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
+			boneInstance->transformMatrix.m03 = boneInstance->nowPosX;
+			boneInstance->transformMatrix.m13 = boneInstance->nowPosY;
+			boneInstance->transformMatrix.m23 = boneInstance->nowPosZ;
+			boneInstance->transformMatrix = MathMatrixMultiplyMatrix(&boneInstance->transformMatrix,&MathQuaternionToMatrix(&(boneInstance->nowRot)));
+		}
+		if(player->currentFrame==player->currentKeyFrame->nextFrame)
+		{
+			player->currentKeyFrame = player->nextKeyFrame;
+			//player->nextKeyFrame = 
+		}
+	}*/
 }

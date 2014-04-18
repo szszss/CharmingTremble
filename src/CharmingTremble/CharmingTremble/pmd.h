@@ -27,7 +27,7 @@ struct implPMD_Model
 	unsigned short *indexes;
 	PMD_Material *materials;
 	PMD_Bone *bones;
-	HashTree *boneMapping;
+	//HashTree *boneMapping;
 	unsigned long vertexCount;
 	unsigned long indexCount;
 	unsigned long materialCount;
@@ -53,7 +53,10 @@ struct implPMD_BoneInstance
 	float nowPosX;
 	float nowPosY;
 	float nowPosZ;
+	Quaternion nowRot;
 	Matrix transformMatrix; //变换矩阵
+	PMD_KeyFrame *firstKeyFrame; //第一个关键帧
+	PMD_KeyFrame *currentKeyFrame; //当前指向的关键帧
 	/*
 	pass表示当前骨骼的变换阶段和状态.
 	低4位 - 阶段:
@@ -77,25 +80,24 @@ struct implPMD_Animation
 {
 	char *name;
 	long frameLength; //总帧长
-	PMD_KeyFrame *keyFrame;
+	HashTree *frameHT; //以骨骼名为Key,存储firstKeyFrame的HashTree
 };
 
 struct implPMD_KeyFrame
 {
-	short count;
-	long nextFrame;
-	char **boneName;
-	float *posX;
-	float *posY;
-	float *posZ;
-	Quaternion *rot;
+	long currentFrameIndex;//当前关键帧的帧序号
+	PMD_KeyFrame *nextFrame;//下一个关键帧,如果没有的话,则为NULL
+	char *boneName;//对应的骨骼的名称
+	float posX;
+	float posY;
+	float posZ;
+	Quaternion rot;
 };
 
 struct implPMD_AnimationPlayer
 {
-	PMD_Animation *animation;
-	PMD_KeyFrame currentKeyFrame;
-	long currentFrame;
+	PMD_Animation *animation; //当前的动作
+	long currentFrameIndex; //当前的帧序号
 };
 
 struct implPMD_ModelInstance
@@ -134,11 +136,17 @@ struct implPMD_Material
 void PMD_Init();
 void PMD_Close();
 
+/*装载一个模型,basePath为基础路径,fileName为模型文件名*/
 PMD_Model* PMD_LoadModel(char *basePath,char *fileName);
+/*为一个已加载的模型创建一个实例*/
 PMD_ModelInstance* PMD_ModelInstanceCreate(PMD_Model *model);
+/*销毁模型实例*/
 void PMD_ModelInstanceDestroy(PMD_ModelInstance *modelInstance);
+/*渲染模型实例*/
 void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance);
 //PMD_Model* PMD_DestroyModel(PMD_Model *model);
 PMD_Animation* PMD_LoadAnimation(char *basePath,char *fileName);
+void PMD_UseAnimation(PMD_ModelInstance *modelInstance,PMD_Animation *animation);
+void PMD_AnimationTick(PMD_ModelInstance *modelInstance);
 
 #endif // pmd_h__

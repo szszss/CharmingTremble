@@ -24,11 +24,6 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 	world->type=type;
 	world->difficulty=difficulty;
 	world->state=WSTATE_STOP;
-	world->upSpeed = 0.075f;
-	world->powerupList=LinkedListCreate();
-	world->blockList=LinkedListCreate();
-	world->operateQueue=LinkedListCreate();
-	world->randomGen=MTCreate(seed);
 	LoggerInfo("A game world had been created");
 	return world;
 }
@@ -36,6 +31,20 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 void WorldStart(World* world)
 {
 	EntityBlock* block = (EntityBlock*)entityBlockPrototype.create(world,0,-14,5,0);
+	int i;
+	for(i=0;i<32;i++)
+	{
+		world->players[i] = NULL;
+	}
+	world->tick=0;
+	world->depth=0;
+	world->depthLevel=0;
+	world->upSpeed = 0.075f;
+	world->powerupList=LinkedListCreate();
+	world->blockList=LinkedListCreate();
+	world->operateQueue=LinkedListCreate();
+	world->randomGen=MTCreate(world->seed);
+
 	block->stepped=0xFFFFFFFF;
 	LinkedListAdd(world->blockList,block);
 	world->players[0] = (EntityPlayer*)EntityPlayerCreate(world,0,-13,0);
@@ -43,22 +52,29 @@ void WorldStart(World* world)
 	LoggerInfo("World started");
 }
 
+static BOOL _DummyDelete(void* v){return 0;}
+
 void WorldEnd(World* world)
 {
+	if(world==NULL)
+		return;
+	LinkedListDestory(world->blockList,CallbackDestroyEntity);
+	LinkedListDestory(world->powerupList,CallbackDestroyEntity);
+	LinkedListDestory(world->operateQueue,_DummyDelete);
+	FOREACH_PLAYERS(player)
+		CallbackDestroyEntity(player);
+	FOREACH_END
+	MTDestroy(world->randomGen);
 	world->state=WSTATE_STOP;
 	LoggerInfo("World ended");
 }
 
 void WorldDestory(World* world)
 {
+	if(world==NULL)
+		return;
 	//free_s(world->player);
 	LoggerInfo("Destroying world");
-	LinkedListDestory(world->blockList,CallbackDestroyEntity);
-	LinkedListDestory(world->powerupList,CallbackDestroyEntity);
-	FOREACH_PLAYERS(player)
-	CallbackDestroyEntity(player);
-	FOREACH_END
-	MTDestroy(world->randomGen);
 	free_s(world);
 	LoggerInfo("World destroyed");
 	//TODO:销毁操作队列

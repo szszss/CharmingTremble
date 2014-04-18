@@ -19,8 +19,12 @@ int Update();
 int HandleEvent(SDL_Event sdlEvent);
 
 static int shouldRun = 1;
+static BOOL shouldKillWorld = FALSE;
 unsigned long long tickTime = 0;
 World* theWorld = NULL;
+static BOOL gamePause = FALSE;
+
+#define QUICK_START
 
 int main(int argc, char** argv)
 {
@@ -47,8 +51,8 @@ void GameMainLoop()
 {
 	long long lastTime=OS_GetMsTime();
 	LoggerInfo("Starting game main loop");
-	theWorld = WorldNewGame("szszss",1000,TYPE_NORMAL,DIFF_NORMAL);
-	WorldStart(theWorld);
+	//theWorld = WorldNewGame("szszss",1000,TYPE_NORMAL,DIFF_NORMAL);
+	//WorldStart(theWorld);
 	Gui_Open(GuiScreenGame);
 	IN_Clear();
 	while(shouldRun)
@@ -57,6 +61,10 @@ void GameMainLoop()
 		{
 			if(Update() || RE_Render())
 				break;
+			/*if(shouldKillWorld)
+			{
+				shouldKillWorld=FALSE;
+			}*/
 			lastTime=OS_GetMsTime();
 			tickTime++;
 		}
@@ -77,10 +85,13 @@ int Update()
 		if(HandleEvent(sdlEvent))
 			return -1;
 	}
-	IN_UpdateInput();
-	if(theWorld!=NULL)
+	if(!gamePause)
 	{
-		WorldUpdate(theWorld);
+		IN_UpdateInput();
+		if(theWorld!=NULL)
+		{
+			WorldUpdate(theWorld);
+		}
 	}
 	Gui_Update(theWorld);
 	return 0;
@@ -104,11 +115,31 @@ int HandleEvent(SDL_Event sdlEvent)
 	case SDL_TEXTEDITING:
 
 		break;
+	case SDL_MOUSEBUTTONDOWN:
+		if(sdlEvent.button.button==SDL_BUTTON_LEFT)
+			IN_MouseDown(sdlEvent.button.x,sdlEvent.button.y);
+		break;
 	case SDL_QUIT:
 		GameExit();
 		return -1;
 	}
 	return 0;
+}
+
+BOOL GameSetPause(BOOL pause)
+{
+	gamePause = pause;
+	return TRUE;
+}
+
+BOOL GameGetPause()
+{
+	return gamePause;
+}
+
+void GameSafelyKillWorld()
+{
+	shouldKillWorld = TRUE;
 }
 
 void GameCrash(char* cause)

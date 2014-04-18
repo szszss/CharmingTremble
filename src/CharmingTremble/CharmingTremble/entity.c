@@ -13,10 +13,13 @@ EntityPrototype entityPlayerPrototype;
 EntityBlockPrototype entityBlockPrototype;
 EntityBlockPrototype entityBlockBrickPrototype;
 EntityBlockPrototype entityBlockMossyPrototype;
+EntityBlockPrototype entityBlockCobblestonePrototype;
 
 extern unsigned long long tickTime;
 extern World *theWorld;
 extern Attribute attributeMossySlow;
+extern PMD_Animation *animationRun;
+extern PMD_Animation *animationStand;
 
 int CallbackDestroyEntity( void* entity )
 {
@@ -55,6 +58,8 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	player->life=5;
 	player->score=0;
 	player->modelInstance=PMD_ModelInstanceCreate(PMD_LoadModel("model/koishi","koishi.pmd"));
+	PMD_UseAnimation(player->modelInstance,animationStand);
+	//player->modelInstance=NULL;
 	player->id=va_arg(args, byte);
 	va_end(args); 
 	return player;
@@ -383,6 +388,14 @@ void EntityBlockOnStepSlow(void* entity,World* world,EntityPlayer* player,BOOL f
 	AttributeAddOrExtend(world,(Entity*)player,&attributeMossySlow);
 }
 
+void EntityBlockOnStepBreak(void* entity,World* world,EntityPlayer* player,BOOL first,int last)
+{
+	EntityBlockBonus* block = (EntityBlockBonus*)entity;
+	EntityBlockOnStep(entity,world,player,first,last);
+	if(first)
+		block->bonusInNumber = 20;
+}
+
 
 int InitEntities()
 {
@@ -402,6 +415,8 @@ int InitEntities()
 	entityBlockMossyPrototype=entityBlockPrototype;
 	entityBlockMossyPrototype.base.create = EntityBlockMossyCreate;
 	entityBlockMossyPrototype.onStep = EntityBlockOnStepSlow;
+	//entityBlockCobblestonePrototype=entityBlockPrototype;
+	//entityBlockCobblestonePrototype.base.create=EntityBlockCobblestoneCreate;
 	LoggerInfo("Entities initialized");
 	return 0;
 }

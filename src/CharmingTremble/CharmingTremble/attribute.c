@@ -124,7 +124,7 @@ void AttributeRender(World *world,Entity *entity)
 int AttributeDestroyCallback(void *attributeInstance)
 {
 	free_s(attributeInstance);
-	return TRUE;
+	return 0;
 }
 
 static BOOL AttributeDefaultOnAdd(World *world,Entity *entity,AttributeInstance *attributeInstance)

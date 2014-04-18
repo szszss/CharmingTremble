@@ -5,7 +5,7 @@ int keyState = 0;
 int keyBuffer = 0;
 static unsigned char operateCodes[256];
 
-static BOOL _DummyDelete(void* v){return TRUE;}
+static BOOL _DummyDelete(void* v){return 0;}
 
 int IN_InitInput()
 {
@@ -103,4 +103,9 @@ void IN_Clear()
 {
 	keyState = 0;
 	keyBuffer = 0;
+}
+
+void IN_MouseDown(long x,long y)
+{
+	Gui_MouseDown(x,y);
 }

@@ -1,6 +1,7 @@
 ﻿#include "world.h"
 #include "memory.h"
 #include "resourcemanager.h"
+#include "ranking.h"
 
 extern EntityPrototype entityPlayerPrototype;
 extern EntityPrototype entityBlockPrototype;
@@ -175,4 +176,6 @@ void WorldRender( World* world )
 void WorldGameOver( World* world )
 {
 	world->state=WSTATE_GAMEOVERED;
+	RankCreate(world->playerName,world->players[0]->score);
+	RankWriteOut();
 }

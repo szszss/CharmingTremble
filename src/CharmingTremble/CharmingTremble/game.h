@@ -71,6 +71,7 @@ typedef struct implHashTreeNode         _HashTreeNode;      //哈希二叉树节
 typedef struct implMTRandomGen          MTRandomGen;        //梅森旋转算法随机数发生器
 typedef struct implLogger               Logger;             //日志记录器
 typedef struct implStringBuilder        StringBuilder;      //字符串构造器
+typedef struct implRank                 Rank;               //玩家排名
 
 typedef struct implQuaternion           Quaternion;         //四元数
 typedef struct implMatrix               Matrix;             //矩阵
@@ -132,6 +133,9 @@ void GameSafelyKillWorld();
 //崩溃掉游戏...并抛出原因
 void GameCrash(char* cause);
 void GameExit();
+
+long long GameGetMaxScore();
+void GameUpdateMaxScore(long long score);
 
 
 /*

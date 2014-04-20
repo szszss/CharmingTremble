@@ -12,6 +12,7 @@
 #include "oswork.h"
 #include "gui.h"
 #include "pmd.h"
+#include "ranking.h"
 
 void GameClose();
 void GameMainLoop();
@@ -22,6 +23,8 @@ static int shouldRun = 1;
 static BOOL shouldKillWorld = FALSE;
 unsigned long long tickTime = 0;
 World* theWorld = NULL;
+char defPlayerName[256] = {0};
+static long long maxScore = 0;
 static BOOL gamePause = FALSE;
 
 #define QUICK_START
@@ -110,7 +113,7 @@ int HandleEvent(SDL_Event sdlEvent)
 			break;
 		break;
 	case SDL_TEXTINPUT:
-		
+		IN_TextInputChar(sdlEvent.text.text);
 		break;
 	case SDL_TEXTEDITING:
 
@@ -158,6 +161,7 @@ void GameClose()
 	IN_DestroyInput();
 	RE_DestroyWindow();
 	PMD_Close();
+	RankDestroy();
 	RM_Close();
 	SDL_Quit();
 	LoggerInfo("SDL closed");
@@ -167,4 +171,15 @@ void GameClose()
 void GameExit()
 {
 	shouldRun = 0;
+}
+
+long long GameGetMaxScore()
+{
+	return maxScore;
+}
+
+void GameUpdateMaxScore(long long score)
+{
+	if(score>maxScore)
+		maxScore = score;
 }

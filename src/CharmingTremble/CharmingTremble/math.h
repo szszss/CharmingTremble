@@ -40,4 +40,6 @@ Quaternion MathQuaternionCreate(Quaternion* source);
 void MathQuaternionLoadIdentity(Quaternion* quaternion);
 Matrix MathQuaternionToMatrix(Quaternion* source);
 Quaternion MathQuaternionSlerp(Quaternion* q1,Quaternion* q2,float rate);
+Quaternion MathQuaternionMultiplyQuaternion(Quaternion* q1,Quaternion* q2);
+void MathQuaternionMultiplyVector3(Quaternion* q,float vx,float vy,float vz,float *store);
 

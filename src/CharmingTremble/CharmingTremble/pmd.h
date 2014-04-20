@@ -53,8 +53,10 @@ struct implPMD_BoneInstance
 	float nowPosX;
 	float nowPosY;
 	float nowPosZ;
-	Quaternion nowRot;
-	Matrix transformMatrix; //变换矩阵
+	Quaternion localRot;
+	Quaternion worldRot;
+	Matrix localTransformMatrix; //局部变形矩阵(相对变形矩阵)
+	Matrix worldTransformMatrix; //世界变形矩阵(绝对变形矩阵)
 	PMD_KeyFrame *firstKeyFrame; //第一个关键帧
 	PMD_KeyFrame *currentKeyFrame; //当前指向的关键帧
 	/*

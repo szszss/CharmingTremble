@@ -325,7 +325,41 @@ void MathQuaternionLoadIdentity(Quaternion* quaternion)
 
 Matrix MathQuaternionToMatrix(Quaternion* source)
 {
-	Matrix matrix;
+	Matrix result = MathMatrixCreate(NULL);
+	float x = source->x;
+	float y = source->y;
+	float z = source->z;
+	float w = source->w;
+	float norm = w * w + x * x + y * y + z * z;
+
+
+	float s = (norm == 1.0f) ? 2.0f : (norm > 0.0f) ? 2.0f / norm : 0;
+
+	float xs = x * s;
+	float ys = y * s;
+	float zs = z * s;
+	float xx = x * xs;
+	float xy = x * ys;
+	float xz = x * zs;
+	float xw = w * xs;
+	float yy = y * ys;
+	float yz = y * zs;
+	float yw = w * ys;
+	float zz = z * zs;
+	float zw = w * zs;
+
+	result.m00 = 1 - (yy + zz);
+	result.m01 = (xy - zw);
+	result.m02 = (xz + yw);
+	result.m10 = (xy + zw);
+	result.m11 = 1 - (xx + zz);
+	result.m12 = (yz - xw);
+	result.m20 = (xz - yw);
+	result.m21 = (yz + xw);
+	result.m22 = 1 - (xx + yy);
+
+	return result;
+	/*Matrix matrix;
 
 	matrix.m00=matrix.m11=matrix.m22=matrix.m33 = source->w;
 
@@ -338,7 +372,7 @@ Matrix MathQuaternionToMatrix(Quaternion* source)
 	matrix.m02=matrix.m31 = source->z;
 	matrix.m20=matrix.m13 = -source->z;
 
-	return matrix;
+	return matrix;*/
 }
 
 Quaternion MathQuaternionSlerp(Quaternion* q1,Quaternion* q2,float rate)
@@ -383,4 +417,38 @@ Quaternion MathQuaternionSlerp(Quaternion* q1,Quaternion* q2,float rate)
 		quaternion.w = (scale0 * q1->w) + (scale1 * -q2->w);
 	}
 	return quaternion;
+}
+
+Quaternion MathQuaternionMultiplyQuaternion( Quaternion* q1,Quaternion* q2 )
+{
+	Quaternion quaternion;
+	float qw = q2->w, qx = q2->x, qy = q2->y, qz = q2->z;
+	quaternion.x = q1->x * qw + q1->y * qz - q1->z * qy + q1->w * qx;
+	quaternion.y = -q1->x * qz + q1->y * qw + q1->z * qx + q1->w * qy;
+	quaternion.z = q1->x * qy - q1->y * qx + q1->z * qw + q1->w * qz;
+	quaternion.w = -q1->x * qx - q1->y * qy - q1->z * qz + q1->w * qw;
+	return quaternion;
+}
+
+void MathQuaternionMultiplyVector3( Quaternion* q,float vx,float vy,float vz,float *store )
+{
+	if(vx==0 && vy==0 && vz==0)
+	{
+		store[0]=0;
+		store[1]=0;
+		store[2]=0;
+	}
+	else
+	{
+		float x = q->x, y = q->y, z = q->z, w = q->w;
+		store[0] = w * w * vx + 2 * y * w * vz - 2 * z * w * vy + x * x
+			* vx + 2 * y * x * vy + 2 * z * x * vz - z * z * vx - y
+			* y * vx;
+		store[1] = 2 * x * y * vx + y * y * vy + 2 * z * y * vz + 2 * w
+			* z * vx - z * z * vy + w * w * vy - 2 * x * w * vz - x
+			* x * vy;
+		store[2] = 2 * x * z * vx + 2 * y * z * vy + z * z * vz - 2 * w
+			* y * vx - y * y * vz + 2 * w * x * vy - x * x * vz + w
+			* w * vz;
+	}
 }

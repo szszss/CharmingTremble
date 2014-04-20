@@ -57,9 +57,9 @@ void* EntityPlayerCreate(World *world,float x,float y, ...)
 	player->speedFactorY=1.0f;
 	player->life=5;
 	player->score=0;
-	player->modelInstance=PMD_ModelInstanceCreate(PMD_LoadModel("model/koishi","koishi.pmd"));
-	PMD_UseAnimation(player->modelInstance,animationStand);
-	//player->modelInstance=NULL;
+	//player->modelInstance=PMD_ModelInstanceCreate(PMD_LoadModel("model/koishi","koishi.pmd"));
+	//PMD_UseAnimation(player->modelInstance,animationRun);
+	player->modelInstance=NULL;
 	player->id=va_arg(args, byte);
 	va_end(args); 
 	return player;
@@ -76,7 +76,7 @@ int EntityPlayerUpdate(void* entity,World* world)
 
 	AttributeUpdate(world,(Entity*)entity);
 
-	//获取操作栈
+	//获取操作队列
 	while((operate=IN_GetOperate())>200)
 	{
 		switch(operate)
@@ -154,12 +154,21 @@ int EntityPlayerUpdate(void* entity,World* world)
 		player->speedY-=0.05f;
 		
 	}
+
 	if(player->base.posY<-15)
 	{
 		if(player->speedY<0)
 			EntityPlayerLifeChange(entity,world,-1);
 		player->speedY = 1.5f;
 	}
+	else if(player->base.posY>14)
+	{
+		if(player->speedY>=0)
+			EntityPlayerLifeChange(entity,world,-1);
+		player->speedY = -0.1f;
+		player->base.posY -= 2.5f;
+	}
+
 	if(player->speedY<-1.0f)
 	{
 		player->speedY=-1.0f;
@@ -353,6 +362,7 @@ void EntityBlockOnStep( void* entity,World* world,EntityPlayer* player,BOOL firs
 		player->score += 10;
 		block->stepped |= (1<<player->id);
 	}
+	GameUpdateMaxScore(player->score);
 }
 
 void EntityBlockOnLeave( void* entity,World* world,EntityPlayer* player )
@@ -379,6 +389,7 @@ void EntityBlockOnStepMoreScore( void* entity,World* world,EntityPlayer* player,
 			player->score += (long long)(delta+block->bonusInNumber)*block->bounsInFactor;
 		}
 	}
+	GameUpdateMaxScore(player->score);
 }
 
 void EntityBlockOnStepSlow(void* entity,World* world,EntityPlayer* player,BOOL first,int last)

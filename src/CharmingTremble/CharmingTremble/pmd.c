@@ -170,10 +170,10 @@ BOOL PMD_ReadVertext(PMD_Model *model,FILE *file)
 	{
 		model->vertexs[i].x=LESReadFloat(file);
 		model->vertexs[i].y=LESReadFloat(file);
-		model->vertexs[i].z=-LESReadFloat(file);
+		model->vertexs[i].z=LESReadFloat(file);
 		model->vertexs[i].nx=LESReadFloat(file);
 		model->vertexs[i].ny=LESReadFloat(file);
-		model->vertexs[i].nz=-LESReadFloat(file);
+		model->vertexs[i].nz=LESReadFloat(file);
 		model->vertexs[i].u=LESReadFloat(file);
 		model->vertexs[i].v=LESReadFloat(file);
 		model->vertexs[i].bone0=LESReadUInt16(file);
@@ -277,7 +277,8 @@ PMD_ModelInstance* PMD_ModelInstanceCreate(PMD_Model *model)
 		boneInstance = modelInstance->boneHierarchy.boneInstaces+i;
 		boneInstance->bone = &model->bones[i];
 		boneInstance->pass = 0;
-		boneInstance->transformMatrix = MathMatrixCreate(NULL);
+		boneInstance->localTransformMatrix = MathMatrixCreate(NULL);
+		boneInstance->worldTransformMatrix = MathMatrixCreate(NULL);
 	}
 	modelInstance->animationPlayer.currentFrameIndex=0;
 	modelInstance->animationPlayer.animation=NULL;
@@ -316,7 +317,8 @@ BOOL PMD_MixMatrix(Matrix *result,PMD_BoneInstance *b0,PMD_BoneInstance *b1,floa
 	{
 		//if((b0->pass&48) == 0)
 		//	return FALSE;
-		*result = b0->transformMatrix;
+		*result = b0->worldTransformMatrix;
+		//result->m00 = 2.0f;
 	}
 	else if(weight>0.01f)
 	{
@@ -325,14 +327,15 @@ BOOL PMD_MixMatrix(Matrix *result,PMD_BoneInstance *b0,PMD_BoneInstance *b1,floa
 		//	return FALSE;
 		for(i=0;i<16;i++)
 		{
-			*(&(result->m00)+i) = *(&(b0->transformMatrix.m00)+i) * weight + *(&(b1->transformMatrix.m00)+i) * (1.0f - weight);
+			*(&(result->m00)+i) = *(&(b0->worldTransformMatrix.m00)+i) * weight + *(&(b1->worldTransformMatrix.m00)+i) * (1.0f - weight);
 		}
+		//result->m00 = 2.0f;
 	}
 	else
 	{
 		//if((b1->pass&48) == 0)
 		//	return FALSE;
-		*result = b1->transformMatrix;
+		*result = b1->worldTransformMatrix;
 	}
 	return TRUE;
 }
@@ -360,8 +363,8 @@ void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance)
 	//glEnable(GL_LIGHTING);
 	//glShadeModel(GL_SMOOTH);
 	glDisable(GL_CULL_FACE);
-	glScalef(scale,scale,scale);
-	//glRotatef(90,0,1,0);
+	glScalef(scale,scale,-scale);
+	//glRotatef(-90,0,1,0);
 	glColor3f(1,1,1);
 	for(i=0,face=0;i<indexCount;i++,face++)
 	{
@@ -584,11 +587,11 @@ void PMD_UseAnimation(PMD_ModelInstance *modelInstance,PMD_Animation *animation)
 			boneInstance->pass=0;
 			boneInstance->currentKeyFrame=keyFrame;
 			boneInstance->firstKeyFrame=keyFrame;
-			MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
-			boneInstance->transformMatrix.m03 = keyFrame->posX;
-			boneInstance->transformMatrix.m13 = keyFrame->posY;
-			boneInstance->transformMatrix.m23 = keyFrame->posZ;
-			boneInstance->nowRot = keyFrame->rot;
+			MathMatrixLoadIdentity(&(boneInstance->localTransformMatrix));
+			boneInstance->localTransformMatrix.m03 = keyFrame->posX;
+			boneInstance->localTransformMatrix.m13 = keyFrame->posY;
+			boneInstance->localTransformMatrix.m23 = keyFrame->posZ;
+			boneInstance->localRot = keyFrame->rot;
 		}
 		else
 		{
@@ -598,8 +601,8 @@ void PMD_UseAnimation(PMD_ModelInstance *modelInstance,PMD_Animation *animation)
 			boneInstance->pass=0;
 			boneInstance->currentKeyFrame=NULL;
 			boneInstance->firstKeyFrame=NULL;
-			MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
-			MathQuaternionLoadIdentity(&(boneInstance->nowRot));
+			MathMatrixLoadIdentity(&(boneInstance->localTransformMatrix));
+			MathQuaternionLoadIdentity(&(boneInstance->localRot));
 		}	
 	}
 	//PMD_AnimationTick(modelInstance);
@@ -607,16 +610,56 @@ void PMD_UseAnimation(PMD_ModelInstance *modelInstance,PMD_Animation *animation)
 
 void PMD_AnimationBoneCala(PMD_ModelInstance *modelInstance,PMD_BoneInstance *boneInstance)
 {
+	Matrix tempMatrix;
+	Matrix rotMatrix;
 	if(boneInstance->bone->parent!=-1)
 	{
 		PMD_BoneInstance *parentInstance = modelInstance->boneHierarchy.boneInstaces + boneInstance->bone->parent;
-		Matrix tempMatrix;
+		float result[3];
 		if(parentInstance->pass!=48)
 			PMD_AnimationBoneCala(modelInstance,parentInstance);
-		tempMatrix = MathMatrixTranspose(&parentInstance->transformMatrix);
-		boneInstance->transformMatrix = MathMatrixMultiplyMatrix(&tempMatrix,&boneInstance->transformMatrix);
-		boneInstance->pass = 48;
+		/*boneInstance->localTransformMatrix.m03 = boneInstance->bone->posX - parentInstance->bone->posX + parentInstance->localTransformMatrix.m03;
+		boneInstance->localTransformMatrix.m13 = boneInstance->bone->posY - parentInstance->bone->posY + parentInstance->localTransformMatrix.m13;
+		boneInstance->localTransformMatrix.m23 = boneInstance->bone->posZ - parentInstance->bone->posZ + parentInstance->localTransformMatrix.m23;
+		boneInstance->worldRot = MathQuaternionMultiplyQuaternion(&parentInstance->worldRot,&boneInstance->localRot);
+		//MathMatrixMultiplyVector3(&rotMatrix,boneInstance->localTransformMatrix.m03,boneInstance->localTransformMatrix.m13,boneInstance->localTransformMatrix.m23,result);		
+		//boneInstance->worldTransformMatrix.m03 = result[0] - boneInstance->localTransformMatrix.m03 + boneInstance->nowPosX + parentInstance->worldTransformMatrix.m03;
+		//boneInstance->worldTransformMatrix.m13 = result[1] - boneInstance->localTransformMatrix.m13 + boneInstance->nowPosY + parentInstance->worldTransformMatrix.m13;
+		//boneInstance->worldTransformMatrix.m23 = result[2] - boneInstance->localTransformMatrix.m23 + boneInstance->nowPosZ + parentInstance->worldTransformMatrix.m23;
+		MathQuaternionMultiplyVector3(&parentInstance->worldRot,boneInstance->localTransformMatrix.m03,
+																boneInstance->localTransformMatrix.m13,
+																boneInstance->localTransformMatrix.m23,
+																result);
+		boneInstance->worldTransformMatrix = MathQuaternionToMatrix(&boneInstance->worldRot);
+		boneInstance->worldTransformMatrix.m03 = result[0]-boneInstance->localTransformMatrix.m03;
+		boneInstance->worldTransformMatrix.m13 = result[1]-boneInstance->localTransformMatrix.m13;
+		boneInstance->worldTransformMatrix.m23 = result[2]-boneInstance->localTransformMatrix.m23;*/
+		boneInstance->worldRot = MathQuaternionMultiplyQuaternion(&parentInstance->worldRot,&boneInstance->localRot);
+		boneInstance->worldTransformMatrix = MathQuaternionToMatrix(&boneInstance->localRot);
+		boneInstance->worldTransformMatrix.m03 += boneInstance->nowPosX;
+		boneInstance->worldTransformMatrix.m13 += boneInstance->nowPosY;
+		boneInstance->worldTransformMatrix.m23 += boneInstance->nowPosZ;
 	}
+	else
+	{
+		//boneInstance->localTransformMatrix.m03 = 0;
+		//boneInstance->localTransformMatrix.m13 = 0;
+		//boneInstance->localTransformMatrix.m23 = 0;
+		boneInstance->worldRot = boneInstance->localRot;
+		boneInstance->worldTransformMatrix = MathQuaternionToMatrix(&boneInstance->worldRot);
+		boneInstance->worldTransformMatrix = MathMatrixInvert(&boneInstance->worldTransformMatrix,NULL);
+		boneInstance->worldTransformMatrix.m03 += boneInstance->nowPosX;
+		boneInstance->worldTransformMatrix.m13 += boneInstance->nowPosY;
+		boneInstance->worldTransformMatrix.m23 += boneInstance->nowPosZ;
+		//rotMatrix = MathQuaternionToMatrix(&(boneInstance->localRot));
+	}
+	//rotMatrix = MathQuaternionToMatrix(&(boneInstance->localRot));
+	//boneInstance->localTransformMatrix = MathMatrixMultiplyMatrix(&boneInstance->localTransformMatrix,&tempMatrix);
+	//boneInstance->worldTransformMatrix = MathMatrixTranspose(&boneInstance->transformMatrix);
+	//boneInstance->worldTransformMatrix = MathMatrixMultiplyMatrix(&tempMatrix,&boneInstance->worldTransformMatrix);
+	//boneInstance->transformMatrix = MathMatrixTranspose(&boneInstance->transformMatrix);
+	//boneInstance->transformMatrix = MathMatrixMultiplyMatrix(&tempMatrix,&boneInstance->transformMatrix);
+	boneInstance->pass = 48;
 }
 
 void PMD_AnimationTick(PMD_ModelInstance *modelInstance)
@@ -639,19 +682,19 @@ void PMD_AnimationTick(PMD_ModelInstance *modelInstance)
 				boneInstance->nowPosX = boneInstance->firstKeyFrame->posX;
 				boneInstance->nowPosY = boneInstance->firstKeyFrame->posY;
 				boneInstance->nowPosZ = boneInstance->firstKeyFrame->posZ;
-				MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
-				boneInstance->transformMatrix.m03 = boneInstance->firstKeyFrame->posX;
-				boneInstance->transformMatrix.m13 = boneInstance->firstKeyFrame->posY;
-				boneInstance->transformMatrix.m23 = boneInstance->firstKeyFrame->posZ;
-				boneInstance->nowRot = boneInstance->firstKeyFrame->rot;
+				MathMatrixLoadIdentity(&(boneInstance->localTransformMatrix));
+				boneInstance->localTransformMatrix.m03 = boneInstance->firstKeyFrame->posX;
+				boneInstance->localTransformMatrix.m13 = boneInstance->firstKeyFrame->posY;
+				boneInstance->localTransformMatrix.m23 = boneInstance->firstKeyFrame->posZ;
+				boneInstance->localRot = boneInstance->firstKeyFrame->rot;
 			}
 			else
 			{
 				boneInstance->nowPosX = 0.0f;
 				boneInstance->nowPosY = 0.0f;
 				boneInstance->nowPosZ = 0.0f;
-				MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
-				MathQuaternionLoadIdentity(&(boneInstance->nowRot));
+				MathMatrixLoadIdentity(&(boneInstance->localTransformMatrix));
+				MathQuaternionLoadIdentity(&(boneInstance->localRot));
 			}
 		}
 	}
@@ -665,7 +708,7 @@ void PMD_AnimationTick(PMD_ModelInstance *modelInstance)
 			{
 				PMD_KeyFrame *currentKeyFrame = boneInstance->currentKeyFrame;
 				PMD_KeyFrame *nextKeyFrame = currentKeyFrame->nextFrame;
-				Matrix tempMatrix;
+				//Matrix tempMatrix;
 				if(nextKeyFrame!=NULL)
 				{
 					if(player->currentFrameIndex == nextKeyFrame->currentFrameIndex)
@@ -675,29 +718,30 @@ void PMD_AnimationTick(PMD_ModelInstance *modelInstance)
 						boneInstance->nowPosX = currentKeyFrame->posX;
 						boneInstance->nowPosY = currentKeyFrame->posY;
 						boneInstance->nowPosZ = currentKeyFrame->posZ;
-						MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
-						boneInstance->transformMatrix.m03 =currentKeyFrame->posX;
-						boneInstance->transformMatrix.m13 = currentKeyFrame->posY;
-						boneInstance->transformMatrix.m23 = currentKeyFrame->posZ;
-						boneInstance->nowRot = currentKeyFrame->rot;
+						MathMatrixLoadIdentity(&(boneInstance->localTransformMatrix));
+						boneInstance->localTransformMatrix.m03 =currentKeyFrame->posX;
+						boneInstance->localTransformMatrix.m13 = currentKeyFrame->posY;
+						boneInstance->localTransformMatrix.m23 = currentKeyFrame->posZ;
+						boneInstance->localRot = currentKeyFrame->rot;
 					}
 					else
 					{
 						float delta = (player->currentFrameIndex - currentKeyFrame->currentFrameIndex) / (float)(nextKeyFrame->currentFrameIndex - currentKeyFrame->currentFrameIndex);
 						float delta2 = 1.0 - delta;
-						boneInstance->nowPosX = nextKeyFrame->posX*delta2 + currentKeyFrame->posX*delta;
-						boneInstance->nowPosY = nextKeyFrame->posY*delta2 + currentKeyFrame->posY*delta;
-						boneInstance->nowPosZ = nextKeyFrame->posZ*delta2 + currentKeyFrame->posZ*delta;
-						MathMatrixLoadIdentity(&(boneInstance->transformMatrix));
-						boneInstance->transformMatrix.m03 = boneInstance->nowPosX;
-						boneInstance->transformMatrix.m13 = boneInstance->nowPosY;
-						boneInstance->transformMatrix.m23 = boneInstance->nowPosZ;
-						boneInstance->nowRot = MathQuaternionSlerp(&currentKeyFrame->rot,&nextKeyFrame->rot,delta);
+						boneInstance->nowPosX = nextKeyFrame->posX*delta + currentKeyFrame->posX*delta2;
+						boneInstance->nowPosY = nextKeyFrame->posY*delta + currentKeyFrame->posY*delta2;
+						boneInstance->nowPosZ = nextKeyFrame->posZ*delta + currentKeyFrame->posZ*delta2;
+						MathMatrixLoadIdentity(&(boneInstance->localTransformMatrix));
+						boneInstance->localTransformMatrix.m03 = boneInstance->nowPosX;
+						boneInstance->localTransformMatrix.m13 = boneInstance->nowPosY;
+						boneInstance->localTransformMatrix.m23 = boneInstance->nowPosZ;
+						boneInstance->localRot = MathQuaternionSlerp(&currentKeyFrame->rot,&nextKeyFrame->rot,delta);
 					}
 					//boneInstance->pass = 48;
 					boneInstance->pass |= 1; //标记为相对变换阶段
-					tempMatrix = MathQuaternionToMatrix(&(boneInstance->nowRot));
-					boneInstance->transformMatrix = MathMatrixMultiplyMatrix(&boneInstance->transformMatrix,&tempMatrix);
+					//boneInstance->transformMatrix.m13 -= 1.4f;
+					//tempMatrix = MathQuaternionToMatrix(&(boneInstance->localRot));
+					//boneInstance->localTransformMatrix = MathMatrixMultiplyMatrix(&boneInstance->localTransformMatrix,&tempMatrix);
 				}
 			}
 			else

@@ -35,3 +35,8 @@ unsigned char IN_GetOperate();
 void IN_UpdateInput();
 void IN_Clear();
 void IN_MouseDown(long x,long y);
+BOOL IN_TextInputEnable(long x,long y,long w,long h);
+void IN_TextInputDisable();
+void IN_TextInputChar(char *str);
+BOOL IN_TextInputChanged();
+void IN_TextInputGet(char *dest);

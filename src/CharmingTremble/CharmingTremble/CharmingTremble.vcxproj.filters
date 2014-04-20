@@ -84,6 +84,9 @@
     <ClCompile Include="oswork.c">
       <Filter>源文件\util</Filter>
     </ClCompile>
+    <ClCompile Include="ranking.c">
+      <Filter>源文件\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
@@ -129,6 +132,9 @@
       <Filter>头文件\util</Filter>
     </ClInclude>
     <ClInclude Include="util.h">
+      <Filter>头文件\util</Filter>
+    </ClInclude>
+    <ClInclude Include="ranking.h">
       <Filter>头文件\util</Filter>
     </ClInclude>
   </ItemGroup>

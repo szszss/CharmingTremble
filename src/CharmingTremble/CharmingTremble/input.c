@@ -1,9 +1,16 @@
 ﻿#include "input.h"
+#include "gui.h"
+#include "SDL_keyboard.h"
+#include <string.h>
 
 OSM mainOSM;
 int keyState = 0;
 int keyBuffer = 0;
 static unsigned char operateCodes[256];
+static BOOL inputEnabled = FALSE;
+static SDL_Rect inputRect;
+static char inputChar[256] = {0};
+static BOOL inputChanged = FALSE;
 
 static BOOL _DummyDelete(void* v){return 0;}
 
@@ -108,4 +115,49 @@ void IN_Clear()
 void IN_MouseDown(long x,long y)
 {
 	Gui_MouseDown(x,y);
+}
+
+BOOL IN_TextInputEnable(long x,long y,long w,long h)
+{
+	if(inputEnabled)
+		return FALSE;
+	SDL_StartTextInput();
+	inputRect.x=x;
+	inputRect.y=y;
+	inputRect.w=w;
+	inputRect.h=h;
+	SDL_SetTextInputRect(&inputRect);
+	inputEnabled = TRUE;
+	inputChanged = TRUE;
+	inputChar[0] = '\0';
+	return TRUE;
+}
+
+void IN_TextInputDisable()
+{
+	if(!inputEnabled)
+		return;
+	SDL_StopTextInput();
+	inputEnabled = FALSE;
+}
+
+void IN_TextInputChar(char *str)
+{
+	int length = strlen(str);
+	if((strlen(inputChar)+strlen(str)+1)>256)
+		return;
+	strcat(inputChar, str);
+	inputChanged = TRUE;
+}
+
+BOOL IN_TextInputChanged()
+{
+	BOOL changed = inputChanged;
+	inputChanged = FALSE;
+	return changed;
+}
+
+void IN_TextInputGet(char *dest)
+{
+	strcpy(dest,inputChar);
 }

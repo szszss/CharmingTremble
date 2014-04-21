@@ -3,7 +3,6 @@
 #include "game.h"
 #include "memory.h"
 #include "oswork.h"
-#include "png.h"
 #include "math.h"
 #include "gui.h"
 #include "collection.h"
@@ -35,14 +34,14 @@ void RE_RenderCubeDoCentre(float lx,float ly,float lz,float rx,float ry,float rz
 void RE_RenderCubeDoRight(float lx,float ly,float lz,float rx,float ry,float rz);
 void RE_DestroyQuicklyRender();
 void RE_DestroyFontRenderer();
-BOOL RE_DestroyTextTexture(void *texture);
+int RE_DestroyTextTexture(void *texture);
 TextTexture* RE_ProcessTextTexture(char* utf8Text,float maxWidth);
 void RE_UpdateTextTextureCache();
 
 SDL_Window* window = NULL;
-SDL_GLContext glContext = NULL;
-FT_Library library = NULL;
-FT_Face face = NULL;
+static SDL_GLContext glContext = NULL;
+static FT_Library library = NULL;
+static FT_Face face = NULL;
 static LinkedList *textTextureCache = NULL;
 static GLdouble aspect;
 static GLuint quicklyRenderList[20]={0};
@@ -130,9 +129,40 @@ int RE_BindTexture(Texture* texture)
 	}
 }
 
+void RE_SetMaterial(float* diffuse,float* ambient,float* specular,float* shininess)
+{
+	static float defaultDiffuse[] = {1,1,1,1};
+	static float defaultAmbient[] = {0.5f,0.5f,0.5f};
+	//static float defaultAmbient[] = {1,1,1};
+	static float defaultSpecular[] = {0,0,0};
+	static float defaultShininess = 0;
+
+	if(diffuse!=NULL)
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+	else
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, defaultDiffuse);
+
+	if(ambient!=NULL)
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
+	else
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, defaultAmbient);
+
+	if(specular!=NULL)
+		glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR, specular);
+	else
+		glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR, defaultSpecular);
+
+	if(shininess!=NULL)
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, *shininess);
+	else
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, defaultShininess);
+}
+
 int RE_Render()
 {
-	static float amLight[] = {0.2,0.2,0.2,1};
+	static float amLight[] = {1,1,1,1};
+	static float light0Position[] = {0,0,1,1};
+	static float light0Diffuse[] = {1,1,1,1};
 	static Texture* texture = NULL;
 	//------------------一些处理-------------------
 	RE_UpdateTextTextureCache();
@@ -152,8 +182,11 @@ int RE_Render()
 	//glShadeModel(GL_SMOOTH);
 	//glEnable(GL_LINE_SMOOTH);
 	//glEnable(GL_POINT_SMOOTH);
-	//glEnable(GL_LIGHTING);
-	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT,amLight);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,amLight);
+	glLightfv(GL_LIGHT0,GL_POSITION,light0Position);
+	glLightfv(GL_LIGHT0,GL_DIFFUSE,light0Diffuse);
 	//glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 	//glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);
 	//glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
@@ -168,7 +201,8 @@ int RE_Render()
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_POINT_SMOOTH);
-	//glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHT0);
+	glDisable(GL_LIGHTING);
 	glFlush();
 	RE_CheckGLError(RE_STAGE_FLUSH_3D);
 	//-------------------绘制2D-------------------
@@ -312,7 +346,9 @@ void RE_DrawRectWithTexture( float x,float y,float width,float height,float u,fl
 	width*=2.0f;
 	height*=2.0f;
 	glBegin(GL_QUADS);
+		//glColor3f(1,1,1);
 		glTexCoord2f(u+uw,v-vh);glVertex3f(x+width,y-height,0);
+		//glColor3f(0,0,1);
 		glTexCoord2f(u+uw,v);glVertex3f(x+width, y,0);
 		glTexCoord2f(u,v);glVertex3f(x,y,0);
 		glTexCoord2f(u,v-vh);glVertex3f(x,y-height,0);
@@ -417,7 +453,7 @@ int RE_InitFontRenderer(int width,int height)
 	return 0;
 }
 
-BOOL RE_DestroyTextTexture(void *texture)
+int RE_DestroyTextTexture(void *texture)
 {
 	TextTexture *textTexture=(TextTexture*)texture;
 	if(!textTexture->isStatic)
@@ -426,7 +462,7 @@ BOOL RE_DestroyTextTexture(void *texture)
 	}
 	RE_UnloadTexture(textTexture->texture.id);
 	free_s(textTexture);
-	return TRUE;
+	return 0;
 }
 
 void RE_DestroyFontRenderer()
@@ -539,11 +575,15 @@ TextTexture* RE_ProcessTextTexture( char* utf8Text,float maxWidth )
 			usedLine++;
 		}
 		k=0;
+		headX+= slot->bitmap_left>0?slot->bitmap_left:0;
+		headY+=lineHeight - slot->bitmap_top-3;
 		for(j=0; j <h;j++) {
 			for(i=0; i < w; i++){
 				bytes[headX+i+(headY+j)*maxX]= i>=slot->bitmap.width||j>=slot->bitmap.rows?0:slot->bitmap.buffer[k++];
 			}
 		}
+		headX-= slot->bitmap_left>0?slot->bitmap_left:0;
+		headY-=lineHeight-slot->bitmap_top-3;
 		headX+=slot->bitmap.width+2;
 		count++;
 		//break;

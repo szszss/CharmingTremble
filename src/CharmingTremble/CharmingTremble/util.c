@@ -164,7 +164,7 @@ int LoggerFatal(char* text,...)
 //int LoggerFatalln(char* text);
 void LoggerClose()
 {
-	LoggerInfo("Closing logger. Good-byte! Cruel world!\n");
+	LoggerInfo("Closing logger. Remained pointers:%d. Good-byte! Cruel world!\n",GetRemainedPointerCount());
 	fclose(logger.loggerFile);
 }
 
@@ -187,6 +187,13 @@ StringBuilder* SBAppend( StringBuilder *sb,char* str )
 
 char* SBBuild( StringBuilder *sb )
 {
+	char* str=SBBuildWithoutDestroy(sb);
+	SBDestroy(sb);
+	return str;
+}
+
+char* SBBuildWithoutDestroy(StringBuilder *sb)
+{
 	int i,length=1;
 	char* str=NULL;
 	for(i=0;i<sb->bufferPointer;i++)
@@ -199,7 +206,6 @@ char* SBBuild( StringBuilder *sb )
 	{
 		strcat(str,sb->bufferedString[i]);
 	}
-	free(sb);
 	return str;
 }
 
@@ -208,6 +214,8 @@ void SBDestroy(StringBuilder *sb)
 	free_s(sb);
 }
 
+//BKDRHash
+/*
 Hash HashCode(char* string)
 {
 	static unsigned long seed = 131;
@@ -216,6 +224,18 @@ Hash HashCode(char* string)
 	{  
 		hash = hash * seed + (*string++);  
 	}  
+	hash &= 0x7FFFFFFF;
+	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
+}*/
+
+//DJBHash, faster than BKDRHash
+Hash HashCode(char* string)
+{
+	unsigned long hash = 5381;
+	while (*string)
+	{
+		hash += (hash << 5) + (*string++);
+	}
 	hash &= 0x7FFFFFFF;
 	return hash>MAX_STRING_HASH?hash%MAX_STRING_HASH:hash;
 }
@@ -308,4 +328,67 @@ wchar_t* UTF8ToANSI( char* utf8Text )
 		LoggerWarn("A possible overflow happened when UTF8ToANSI:%s",utf8Text);
 	}
 	return ansiText;
+}
+
+byte LESReadByte(FILE *file)
+{
+	return (byte)fgetc(file);
+}
+
+void LESReadBytes(FILE *file,byte *buffer,size_t count)
+{
+	fread(buffer,sizeof(byte),count,file);
+}
+
+char LESReadChar(FILE *file)
+{
+	return fgetc(file);
+}
+
+float LESReadFloat(FILE *file)
+{
+	byte buffer[4];
+	fread(&buffer,sizeof(byte),4,file);
+	return *((float*)(&buffer));
+}
+
+double LESReadDouble(FILE *file)
+{
+	byte buffer[8];
+	fread(&buffer,sizeof(byte),8,file);
+	return *((double*)(&buffer));
+}
+
+short LESReadInt16(FILE *file)
+{
+	byte buffer[2];
+	fread(&buffer,sizeof(byte),2,file);
+	return *((short*)(&buffer));
+}
+
+long LESReadInt32(FILE *file)
+{
+	byte buffer[4];
+	fread(&buffer,sizeof(byte),4,file);
+	return *((long*)(&buffer));
+}
+
+long long LESReadInt64(FILE *file)
+{
+	byte buffer[8];
+	fread(&buffer,sizeof(byte),8,file);
+	return *((long long*)(&buffer));
+}
+
+unsigned short LESReadUInt16(FILE *file)
+{
+	byte buffer[2];
+	fread(&buffer,sizeof(byte),2,file);
+	return *((unsigned short*)(&buffer));
+}
+unsigned long  LESReadUInt32(FILE *file)
+{
+	byte buffer[4];
+	fread(&buffer,sizeof(byte),4,file);
+	return *((unsigned long*)(&buffer));
 }

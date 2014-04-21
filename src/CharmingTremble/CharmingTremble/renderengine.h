@@ -53,6 +53,10 @@ uw,vh为纹理中截取的面积*/
 void RE_DrawRectWithTexture(float x,float y,float width,float height,float u,float v,float uw,float vh);
 /*绑定一个纹理,若为NULL,则为取消绑定.返回值为被绑定的纹理的纹理对象ID (参数为NULL则为0)*/
 int RE_BindTexture(Texture* texture);
+/*设置材质,NULL的项会采用默认值*/
+void RE_SetMaterial(float* diffuse,float* ambient,float* specular,float* shininess);
+/*使用默认材质*/
+#define RE_ClearMaterial() RE_SetMaterial(0,0,0,0);
 /*处理一个正在载入的纹理*/
 unsigned int RE_ProcessRawTexture(byte* rawData,int color,int format,unsigned long width,unsigned long height);
 /*卸载一个纹理对象,注意它只负责卸载OpenGL内部的纹理对象,纹理(Texture)的释放仍需要手动完成*/

@@ -1,14 +1,18 @@
 ﻿#include "resourcemanager.h"
 #include "collection.h"
 #include "memory.h"
+#include "stbi.h"
 #include "png.h"
+#include "tga.h"
 #include "SDL_opengl.h"
 #include <string.h>
 
-HashTree *textureHT = NULL;
+static HashTree *textureHT = NULL;
 
 void RM_DestroyTexture(void* p);
 Texture* RM_LoadPNG(char* imageFile);
+Texture* RM_LoadTGA(char* imageFile);
+void RM_ReverseRawData(unsigned char *rawBytes, unsigned int width, unsigned int height, size_t size);
 
 int RM_InitResourceManager()
 {
@@ -22,6 +26,22 @@ void RM_DestroyTexture(void* p)
 	Texture *texture = (Texture*)p;
 	RE_UnloadTexture(texture->id);
 	free_s(texture); //yeah, just♂so♂easy
+}
+
+void RM_ReverseRawData(unsigned char *rawBytes, unsigned int width, unsigned int height, size_t size)
+{
+	int top=0,bottom=height-1;
+	size_t dataWidth = width*size*sizeof(unsigned char);
+	unsigned char *temp = (unsigned char*)malloc_s(dataWidth);
+	while(top<bottom)
+	{
+		memcpy(temp, rawBytes + top*width*size, dataWidth);
+		memcpy(rawBytes + top*width*size, rawBytes+bottom*width*size, dataWidth);
+		memcpy(rawBytes + bottom*width*size, temp, dataWidth);
+		top++;
+		bottom--;
+	}
+	free_s(temp);
 }
 
 int RM_Close()
@@ -58,14 +78,38 @@ Texture* RM_LoadTexture( char* imageFile )
 	{
 		texture = RM_LoadPNG(imageFile);
 	}
+	else if(strnicmp(suffix,".tga",4)==0)
+	{
+		texture = RM_LoadTGA(imageFile);
+	}
 	else
 	{
-		LoggerWarn("A texture can't be load because of unknown suffix");
+		int width;
+		int height;
+		int comp;
+		stbi_uc *rawBytes = stbi_load(imageFile,&width,&height,&comp,STBI_rgb_alpha);
+		if(rawBytes==NULL)
+		{
+			LoggerWarn("Texture [ %s ] can't be loaded. Reason: %s",imageFile,stbi_failure_reason());
+			//TODO:绘制一个紫格子上去hehe...
+		}
+		if(comp<3)
+		{
+			LoggerWarn("Texture [ %s ] can't be loaded. Reason: Error comp",imageFile);
+			//TODO:绘制一个紫格子上去hehe...
+		}
+		RM_ReverseRawData(rawBytes,width,height,comp==4?4:3);
+		texture = (Texture*)malloc_s(sizeof(Texture));
+		texture->width=width;
+		texture->height=height;
+		texture->id=RE_ProcessRawTexture(rawBytes,
+			comp==4?GL_RGBA8:GL_RGB8,
+			comp==4?GL_RGBA:GL_RGB,
+			width,height);
+		stbi_image_free(rawBytes);
 	}
-	if (texture == NULL)
-		return NULL; //TODO:A ERROR IMAGE.
 	HashTreeAdd(textureHT,imageFile,texture);
-	LoggerInfo("A texture has been loaded");
+	LoggerInfo("A texture has been loaded : %s",imageFile);
 	return texture;
 }
 
@@ -151,5 +195,48 @@ Texture* RM_LoadPNG( char* imageFile )
 	free(rawData);
 	free(rowPointers);
 	fclose(file);
+	return texture;
+}
+
+Texture* RM_LoadTGA(char* imageFile)
+{
+	//	int test[9];
+	//	int i;
+	Texture* texture = NULL;
+	TGAData tgaData;
+	TGA *tga;
+	int colorFormat;
+	BOOL hasAlpha = FALSE;
+	tga = TGAOpen(imageFile,"rb");
+	tgaData.flags = TGA_IMAGE_DATA | TGA_IMAGE_ID | TGA_RGB;
+	TGAReadImage(tga,&tgaData);
+	texture = (Texture*)malloc_s(sizeof(Texture));
+	texture->width=tga->hdr.width;
+	texture->height=tga->hdr.height;
+	hasAlpha=tga->hdr.alpha>0;
+	if(tgaData.flags & TGA_BGR)
+	{
+		if(hasAlpha)
+			colorFormat = GL_BGRA;
+		else
+			colorFormat = GL_BGR;
+	}
+	else
+	{
+		if(hasAlpha)
+			colorFormat = GL_RGBA;
+		else
+			colorFormat = GL_RGB;
+	}
+	//	for(i=0;i<9;i++)
+	//		test[i]=tgaData.img_data[i];
+	RM_ReverseRawData(tgaData.img_data,texture->width,texture->height,hasAlpha?4:3);
+	texture->id=RE_ProcessRawTexture(tgaData.img_data,
+		hasAlpha>0?GL_RGBA:GL_RGB8,
+		colorFormat,
+		texture->width,texture->height);
+	TGAClose(tga);
+	//free_s(tgaData.img_id);
+	free(tgaData.img_data);
 	return texture;
 }

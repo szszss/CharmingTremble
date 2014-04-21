@@ -1,9 +1,12 @@
 ﻿#include "world.h"
 #include "memory.h"
 #include "resourcemanager.h"
+#include "ranking.h"
 
-extern EntityPrototype entityPrototypePlayer;
-extern EntityPrototype entityPrototypeBlock;
+extern EntityPrototype entityPlayerPrototype;
+extern EntityPrototype entityBlockPrototype;
+extern EntityBlockPrototype entityBlockBrickPrototype;
+extern EntityBlockPrototype entityBlockMossyPrototype;
 
 World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDifficulty difficulty )
 {
@@ -22,18 +25,27 @@ World* WorldNewGame( char* playerName,long seed,enum WorldType type,enum WorldDi
 	world->type=type;
 	world->difficulty=difficulty;
 	world->state=WSTATE_STOP;
-	world->upSpeed = 0.075f;
-	world->powerupList=LinkedListCreate();
-	world->blockList=LinkedListCreate();
-	world->operateQueue=LinkedListCreate();
-	world->randomGen=MTCreate(seed);
 	LoggerInfo("A game world had been created");
 	return world;
 }
 
 void WorldStart(World* world)
 {
-	EntityBlock* block = (EntityBlock*)entityPrototypeBlock.create(world,0,-14,5,0);
+	EntityBlock* block = (EntityBlock*)entityBlockPrototype.create(world,0,-14,5,0);
+	int i;
+	for(i=0;i<32;i++)
+	{
+		world->players[i] = NULL;
+	}
+	world->tick=0;
+	world->depth=0;
+	world->depthLevel=0;
+	world->upSpeed = 0.075f;
+	world->powerupList=LinkedListCreate();
+	world->blockList=LinkedListCreate();
+	world->operateQueue=LinkedListCreate();
+	world->randomGen=MTCreate(world->seed);
+
 	block->stepped=0xFFFFFFFF;
 	LinkedListAdd(world->blockList,block);
 	world->players[0] = (EntityPlayer*)EntityPlayerCreate(world,0,-13,0);
@@ -41,22 +53,29 @@ void WorldStart(World* world)
 	LoggerInfo("World started");
 }
 
+static BOOL _DummyDelete(void* v){return 0;}
+
 void WorldEnd(World* world)
 {
+	if(world==NULL)
+		return;
+	LinkedListDestory(world->blockList,CallbackDestroyEntity);
+	LinkedListDestory(world->powerupList,CallbackDestroyEntity);
+	LinkedListDestory(world->operateQueue,_DummyDelete);
+	FOREACH_PLAYERS(player)
+		CallbackDestroyEntity(player);
+	FOREACH_END
+	MTDestroy(world->randomGen);
 	world->state=WSTATE_STOP;
 	LoggerInfo("World ended");
 }
 
 void WorldDestory(World* world)
 {
+	if(world==NULL)
+		return;
 	//free_s(world->player);
 	LoggerInfo("Destroying world");
-	LinkedListDestory(world->blockList,CallbackDestroyEntity);
-	LinkedListDestory(world->powerupList,CallbackDestroyEntity);
-	FOREACH_PLAYERS(player)
-	CallbackDestroyEntity(player);
-	FOREACH_END
-	MTDestroy(world->randomGen);
 	free_s(world);
 	LoggerInfo("World destroyed");
 	//TODO:销毁操作队列
@@ -92,12 +111,28 @@ void WorldUpdate( World* world )
 		{
 			int count = MTNextInt(world->randomGen,0,1);
 			int x = MTNextInt(world->randomGen,0,19);
+			int blockType = MTNextInt(world->randomGen,0,10);
 			byte length = (byte)MTNextInt(world->randomGen,4,10);
 			EntityBlock *block = NULL;
 			world->depth-=5.0;
 			world->depthLevel++;
-			block = (EntityBlock*)entityPrototypeBlock.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+			switch(blockType)
+			{
+			case 0:
+			case 1:
+			case 3:
+				block = (EntityBlock*)entityBlockBrickPrototype.base.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+				break;
+			case 4:
+			case 5:
+				block = (EntityBlock*)entityBlockMossyPrototype.base.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+				break;
+			default:
+				block = (EntityBlock*)entityBlockPrototype.create(world,(float)x-9.5f,-16,length,world->depthLevel);
+				break;
+			}
 			LinkedListAdd(world->blockList,block);
+			world->upSpeed += 0.0003f;
 		}
 		UpdateEntityList(world,world->blockList);
 		UpdateEntityList(world,world->powerupList);
@@ -119,6 +154,7 @@ void RenderEntityList(World* world,LinkedList *list)
 		entity = LinkedListIteratorGetNext(iterator);
 		p = ((Entity*)entity)->prototype;
 		p->render(entity,world);
+		//AttributeRender(world,(Entity*)entity);
 	}
 }
 
@@ -130,6 +166,7 @@ void WorldRender( World* world )
 		RenderEntityList(world,world->powerupList);
 		FOREACH_PLAYERS(player)
 		((Entity*)(player))->prototype->render(player,world);
+		//AttributeRender(world,(Entity*)player);
 		FOREACH_END
 	}
 	else if(world->state==WSTATE_GAMEOVERED)
@@ -142,4 +179,6 @@ void WorldRender( World* world )
 void WorldGameOver( World* world )
 {
 	world->state=WSTATE_GAMEOVERED;
+	RankCreate(world->playerName,world->players[0]->score);
+	RankWriteOut();
 }

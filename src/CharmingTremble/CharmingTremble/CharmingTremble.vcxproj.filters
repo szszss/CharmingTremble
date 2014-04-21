@@ -13,81 +13,135 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\graphics">
+      <UniqueIdentifier>{ba35ad91-93e2-4709-9908-4478e4367ae5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\logic">
+      <UniqueIdentifier>{1766de2c-fcb9-430a-9205-7668dd995e2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\util">
+      <UniqueIdentifier>{961dafa7-c3b1-40ef-b0fe-eec5cfdcfc54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\loader">
+      <UniqueIdentifier>{4105a5c1-ae6b-4dae-869c-16d9b3cf22d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\graphics">
+      <UniqueIdentifier>{37a0296f-bded-4e8f-a8e7-bbe06385ea13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\logic">
+      <UniqueIdentifier>{22da7308-23e4-4a86-ad26-08cb05f61d5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\loader">
+      <UniqueIdentifier>{4b79df20-53de-4924-820f-507220a7f02b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\util">
+      <UniqueIdentifier>{9524eead-e007-497a-a252-958870ce5495}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\input">
+      <UniqueIdentifier>{61880775-c053-40df-b35c-88bee78284c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\input">
+      <UniqueIdentifier>{9fc6a593-d782-4d42-8712-63a6d988197a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="game.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="memory.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="util.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="renderengine.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="world.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="collection.c">
-      <Filter>源文件</Filter>
+    <ClCompile Include="attribute.c">
+      <Filter>源文件\logic</Filter>
     </ClCompile>
     <ClCompile Include="entity.c">
-      <Filter>源文件</Filter>
+      <Filter>源文件\logic</Filter>
+    </ClCompile>
+    <ClCompile Include="world.c">
+      <Filter>源文件\logic</Filter>
     </ClCompile>
     <ClCompile Include="gui.c">
-      <Filter>源文件</Filter>
+      <Filter>源文件\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="renderengine.c">
+      <Filter>源文件\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="pmd.c">
+      <Filter>源文件\graphics</Filter>
     </ClCompile>
     <ClCompile Include="resourcemanager.c">
-      <Filter>源文件</Filter>
+      <Filter>源文件\loader</Filter>
     </ClCompile>
-    <ClCompile Include="oswork.c">
-      <Filter>源文件</Filter>
+    <ClCompile Include="stbi.c">
+      <Filter>源文件\loader</Filter>
     </ClCompile>
-    <ClCompile Include="input.c">
-      <Filter>源文件</Filter>
+    <ClCompile Include="collection.c">
+      <Filter>源文件\util</Filter>
+    </ClCompile>
+    <ClCompile Include="util.c">
+      <Filter>源文件\util</Filter>
     </ClCompile>
     <ClCompile Include="math.c">
-      <Filter>源文件</Filter>
+      <Filter>源文件\util</Filter>
+    </ClCompile>
+    <ClCompile Include="memory.c">
+      <Filter>源文件\util</Filter>
+    </ClCompile>
+    <ClCompile Include="oswork.c">
+      <Filter>源文件\util</Filter>
+    </ClCompile>
+    <ClCompile Include="ranking.c">
+      <Filter>源文件\util</Filter>
+    </ClCompile>
+    <ClCompile Include="input.c">
+      <Filter>源文件\input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="memory.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="renderengine.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="world.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="util.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="collection.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="pmd.h">
+      <Filter>头文件\graphics</Filter>
     </ClInclude>
     <ClInclude Include="gui.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="attribute.h">
+      <Filter>头文件\logic</Filter>
     </ClInclude>
     <ClInclude Include="entity.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\logic</Filter>
+    </ClInclude>
+    <ClInclude Include="world.h">
+      <Filter>头文件\logic</Filter>
     </ClInclude>
     <ClInclude Include="resourcemanager.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\loader</Filter>
     </ClInclude>
-    <ClInclude Include="oswork.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="stbi.h">
+      <Filter>头文件\loader</Filter>
     </ClInclude>
-    <ClInclude Include="input.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="collection.h">
+      <Filter>头文件\util</Filter>
     </ClInclude>
     <ClInclude Include="math.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\util</Filter>
+    </ClInclude>
+    <ClInclude Include="memory.h">
+      <Filter>头文件\util</Filter>
+    </ClInclude>
+    <ClInclude Include="oswork.h">
+      <Filter>头文件\util</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>头文件\util</Filter>
+    </ClInclude>
+    <ClInclude Include="ranking.h">
+      <Filter>头文件\util</Filter>
+    </ClInclude>
+    <ClInclude Include="input.h">
+      <Filter>头文件\input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

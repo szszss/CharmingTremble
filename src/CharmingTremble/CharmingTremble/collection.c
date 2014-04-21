@@ -158,18 +158,25 @@ unsigned long LinkedListDestory(LinkedList* linkedList,int (*callbackFunction)(v
 	node = linkedList->headNode->next;
 	while(node!=NULL)
 	{
-		if(callbackFunction(node->value))
+		if(callbackFunction==NULL)
 		{
-			linkedList->headNode->next=node;
-			node->last=linkedList->headNode;
-			return linkedList->length;
+			free_s(node->value);
 		}
 		else
 		{
-			deleted=node;
-			node=node->next;
-			free_s(deleted);
-			linkedList->length--;
+			if(callbackFunction(node->value))
+			{
+				linkedList->headNode->next=node;
+				node->last=linkedList->headNode;
+				return linkedList->length;
+			}
+			else
+			{
+				deleted=node;
+				node=node->next;
+				free_s(deleted);
+				linkedList->length--;
+			}
 		}
 	}
 	free_s(linkedList->headNode->value);
@@ -372,13 +379,12 @@ _HashTreeNode* _HashTreeGet(HashTree* ht,char* key,BOOL* result)
 		}
 		else
 		{
-			if(node->nextNode==NULL || strcmp(key,node->key)==0)
+			if(strcmp(key,node->key)==0)
 			{
 				if(result!=NULL)
 					*result = TRUE;
 				return node;
 			}
-				
 			node=node->nextNode;
 		}
 	}

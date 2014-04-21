@@ -1,5 +1,7 @@
 ﻿#include "memory.h"
 
+static long pointerUsed = 0;
+
 void* malloc_s( size_t size )
 {
 	void* p = malloc(size);
@@ -7,6 +9,7 @@ void* malloc_s( size_t size )
 	{
 		//TODO:OOM!
 	}
+	pointerUsed++;
 	return p;
 }
 
@@ -22,5 +25,11 @@ void* realloc_s( void* p,size_t size )
 
 void free_s( void* p )
 {
+	pointerUsed--;
 	free(p);
+}
+
+long GetRemainedPointerCount()
+{
+	return pointerUsed;
 }

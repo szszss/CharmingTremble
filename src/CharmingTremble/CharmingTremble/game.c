@@ -20,7 +20,6 @@ int Update();
 int HandleEvent(SDL_Event sdlEvent);
 
 static int shouldRun = 1;
-static BOOL shouldKillWorld = FALSE;
 unsigned long long tickTime = 0;
 World* theWorld = NULL;
 char defPlayerName[256] = {0};
@@ -64,10 +63,6 @@ void GameMainLoop()
 		{
 			if(Update() || RE_Render())
 				break;
-			/*if(shouldKillWorld)
-			{
-				shouldKillWorld=FALSE;
-			}*/
 			lastTime=OS_GetMsTime();
 			tickTime++;
 		}
@@ -90,13 +85,13 @@ int Update()
 	}
 	if(!gamePause)
 	{
-		IN_UpdateInput();
+		IN_UpdateInput(); //处理输入
 		if(theWorld!=NULL)
 		{
-			WorldUpdate(theWorld);
+			WorldUpdate(theWorld); //更新世界
 		}
 	}
-	Gui_Update(theWorld);
+	Gui_Update(theWorld); //更新界面
 	return 0;
 }
 
@@ -138,11 +133,6 @@ BOOL GameSetPause(BOOL pause)
 BOOL GameGetPause()
 {
 	return gamePause;
-}
-
-void GameSafelyKillWorld()
-{
-	shouldKillWorld = TRUE;
 }
 
 void GameCrash(char* cause)

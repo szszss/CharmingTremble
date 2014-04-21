@@ -37,6 +37,12 @@
     <Filter Include="源文件\util">
       <UniqueIdentifier>{9524eead-e007-497a-a252-958870ce5495}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\input">
+      <UniqueIdentifier>{61880775-c053-40df-b35c-88bee78284c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\input">
+      <UniqueIdentifier>{9fc6a593-d782-4d42-8712-63a6d988197a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="game.c">
@@ -72,9 +78,6 @@
     <ClCompile Include="util.c">
       <Filter>源文件\util</Filter>
     </ClCompile>
-    <ClCompile Include="input.c">
-      <Filter>源文件\util</Filter>
-    </ClCompile>
     <ClCompile Include="math.c">
       <Filter>源文件\util</Filter>
     </ClCompile>
@@ -86,6 +89,9 @@
     </ClCompile>
     <ClCompile Include="ranking.c">
       <Filter>源文件\util</Filter>
+    </ClCompile>
+    <ClCompile Include="input.c">
+      <Filter>源文件\input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -119,9 +125,6 @@
     <ClInclude Include="collection.h">
       <Filter>头文件\util</Filter>
     </ClInclude>
-    <ClInclude Include="input.h">
-      <Filter>头文件\util</Filter>
-    </ClInclude>
     <ClInclude Include="math.h">
       <Filter>头文件\util</Filter>
     </ClInclude>
@@ -136,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="ranking.h">
       <Filter>头文件\util</Filter>
+    </ClInclude>
+    <ClInclude Include="input.h">
+      <Filter>头文件\input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

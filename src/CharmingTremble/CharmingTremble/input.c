@@ -4,8 +4,6 @@
 #include <string.h>
 
 OSM mainOSM;
-int keyState = 0;
-int keyBuffer = 0;
 static unsigned char operateCodes[256];
 static BOOL inputEnabled = FALSE;
 static SDL_Rect inputRect;
@@ -108,8 +106,7 @@ void IN_UpdateInput()
 
 void IN_Clear()
 {
-	keyState = 0;
-	keyBuffer = 0;
+	//do nothing...
 }
 
 void IN_MouseDown(long x,long y)

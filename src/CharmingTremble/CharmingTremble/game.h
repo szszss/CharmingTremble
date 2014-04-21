@@ -129,7 +129,6 @@ enum PMD_Texture_Format {
 
 BOOL GameSetPause(BOOL pause);
 BOOL GameGetPause();
-void GameSafelyKillWorld();
 //崩溃掉游戏...并抛出原因
 void GameCrash(char* cause);
 void GameExit();

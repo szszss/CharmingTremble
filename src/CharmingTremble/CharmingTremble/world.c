@@ -111,7 +111,7 @@ void WorldUpdate( World* world )
 		{
 			int count = MTNextInt(world->randomGen,0,1);
 			int x = MTNextInt(world->randomGen,0,19);
-			int blockType = MTNextInt(world->randomGen,0,4);
+			int blockType = MTNextInt(world->randomGen,0,10);
 			byte length = (byte)MTNextInt(world->randomGen,4,10);
 			EntityBlock *block = NULL;
 			world->depth-=5.0;
@@ -119,10 +119,12 @@ void WorldUpdate( World* world )
 			switch(blockType)
 			{
 			case 0:
+			case 1:
+			case 3:
 				block = (EntityBlock*)entityBlockBrickPrototype.base.create(world,(float)x-9.5f,-16,length,world->depthLevel);
 				break;
-			case 1:
-			case 2:
+			case 4:
+			case 5:
 				block = (EntityBlock*)entityBlockMossyPrototype.base.create(world,(float)x-9.5f,-16,length,world->depthLevel);
 				break;
 			default:
@@ -130,6 +132,7 @@ void WorldUpdate( World* world )
 				break;
 			}
 			LinkedListAdd(world->blockList,block);
+			world->upSpeed += 0.0003f;
 		}
 		UpdateEntityList(world,world->blockList);
 		UpdateEntityList(world,world->powerupList);

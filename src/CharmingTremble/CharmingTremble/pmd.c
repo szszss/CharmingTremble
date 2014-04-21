@@ -315,16 +315,16 @@ BOOL PMD_MixMatrix(Matrix *result,PMD_BoneInstance *b0,PMD_BoneInstance *b1,floa
 {
 	if(weight>0.99f)
 	{
-		//if((b0->pass&48) == 0)
-		//	return FALSE;
+		if((b0->pass&48) == 0)
+			return FALSE;
 		*result = b0->worldTransformMatrix;
 		//result->m00 = 2.0f;
 	}
 	else if(weight>0.01f)
 	{
 		int i;
-		//if(((b0->pass&48) == 0) && ((b1->pass&48) == 0))
-		//	return FALSE;
+		if(((b0->pass&48) == 0) && ((b1->pass&48) == 0))
+			return FALSE;
 		for(i=0;i<16;i++)
 		{
 			*(&(result->m00)+i) = *(&(b0->worldTransformMatrix.m00)+i) * weight + *(&(b1->worldTransformMatrix.m00)+i) * (1.0f - weight);
@@ -333,8 +333,8 @@ BOOL PMD_MixMatrix(Matrix *result,PMD_BoneInstance *b0,PMD_BoneInstance *b1,floa
 	}
 	else
 	{
-		//if((b1->pass&48) == 0)
-		//	return FALSE;
+		if((b1->pass&48) == 0)
+			return FALSE;
 		*result = b1->worldTransformMatrix;
 	}
 	return TRUE;
@@ -342,8 +342,8 @@ BOOL PMD_MixMatrix(Matrix *result,PMD_BoneInstance *b0,PMD_BoneInstance *b1,floa
 
 void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance)
 {
-	//static float scale = 0.15f;
-	static float scale = 0.55f;
+	static float scale = 0.15f;
+	//static float scale = 0.55f;
 	float vbuffer[3];
 	Matrix matrix;
 	Matrix *m1;
@@ -354,7 +354,7 @@ void PMD_ModelInstanceRender(PMD_ModelInstance *modelInstance)
 	long vertex;
 	PMD_Model *model = modelInstance->model;
 	int indexCount = model->indexCount;
-	PMD_AnimationTick(modelInstance);
+	//PMD_AnimationTick(modelInstance);
 	if(model->materialCount>0)
 	{
 		materialThreshold=0;		

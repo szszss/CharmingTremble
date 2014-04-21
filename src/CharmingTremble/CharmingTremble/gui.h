@@ -48,11 +48,13 @@ int GuiButtonPausePress(GuiButton* button,GuiScreen* screen,World* world);
 int GuiButtonStopPress(GuiButton* button,GuiScreen* screen,World* world);
 int GuiButtonRestartPress(GuiButton* button,GuiScreen* screen,World* world);
 int GuiButtonNamePress(GuiButton* button,GuiScreen* screen,World* world);
+int GuiButtonModelPress(GuiButton* button,GuiScreen* screen,World* world);
 void GuiButtonStartUpdate(GuiButton* button,GuiScreen* screen,World* world);
 void GuiButtonPauseUpdate(GuiButton* button,GuiScreen* screen,World* world);
 void GuiButtonStopUpdate(GuiButton* button,GuiScreen* screen,World* world);
 void GuiButtonRestartUpdate(GuiButton* button,GuiScreen* screen,World* world);
 void GuiButtonNameUpdate(GuiButton* button,GuiScreen* screen,World* world);
+void GuiButtonModelUpdate(GuiButton* button,GuiScreen* screen,World* world);
 
 int GuiButtonEnterPress(GuiButton* button,GuiScreen* screen,World* world);
 int GuiButtonCancelPress(GuiButton* button,GuiScreen* screen,World* world);

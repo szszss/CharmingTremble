@@ -39,9 +39,9 @@ TextTexture* RE_ProcessTextTexture(char* utf8Text,float maxWidth);
 void RE_UpdateTextTextureCache();
 
 SDL_Window* window = NULL;
-SDL_GLContext glContext = NULL;
-FT_Library library = NULL;
-FT_Face face = NULL;
+static SDL_GLContext glContext = NULL;
+static FT_Library library = NULL;
+static FT_Face face = NULL;
 static LinkedList *textTextureCache = NULL;
 static GLdouble aspect;
 static GLuint quicklyRenderList[20]={0};

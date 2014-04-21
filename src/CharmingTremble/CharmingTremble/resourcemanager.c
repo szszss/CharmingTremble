@@ -7,7 +7,7 @@
 #include "SDL_opengl.h"
 #include <string.h>
 
-HashTree *textureHT = NULL;
+static HashTree *textureHT = NULL;
 
 void RM_DestroyTexture(void* p);
 Texture* RM_LoadPNG(char* imageFile);
